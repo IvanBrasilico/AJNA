@@ -1,0 +1,51 @@
+{% extends 'busca/base.html' %}
+{% block content %}
+</div>
+</div>
+<table>
+{% if listanaovazios %}
+    <tr><th colspan="2">Contêineres testados como NÃO vazios</th></tr>
+    {% for ConteinerEscaneado in listanaovazios %}
+    <tr>
+    <td>
+        <a href="/busca/conteiner/{{ ConteinerEscaneado.id }}/"><img src="/static/busca/{{ ConteinerEscaneado.arqimagem }}"
+           alt="{{ ConteinerEscaneado.arqimagem }}"/>
+    </td>
+    <td>
+         <a href="/busca/conteiner/{{ ConteinerEscaneado.id }}/">{{ ConteinerEscaneado.numero }}</a>
+    </td>
+    </tr>
+    {% endfor %}
+{% else %}
+    <tr><th colspan="2">Sem contêineres testados como NÃO vazios</th></tr>
+{% endif %}
+
+{% if listanaoencontrados %}
+    <tr><th colspan="2">&nbsp;</th></tr>
+    <tr><th colspan="2">Contêineres NÃO encontrados</th></tr>
+    {% for numero in listanaoencontrados %}
+    <tr><td>
+         {{ numero }}</a>
+    </td></tr>
+    {% endfor %}
+        </div>
+{% else %}
+    <tr><th colspan="2">Sem contêineres NÃO encontrados</th></tr>
+{% endif %}
+
+{% if listavazios %}
+    <tr><th colspan="2">&nbsp;</th></tr>
+    <tr><th colspan="2">Contêineres testados como VAZIOS</th></tr>
+    {% for ConteinerEscaneado in listavazios %}
+    <tr><td>
+         <a href="/busca/conteiner/{{ ConteinerEscaneado.id }}/">{{ ConteinerEscaneado.numero }}</a>
+    </td></tr>
+    {% endfor %}
+        </div>
+{% else %}
+    <tr><th colspan="2">Sem contêineres vazios</th></tr>
+{% endif %}
+
+</table>
+
+{% endblock %}

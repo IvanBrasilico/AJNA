@@ -1,0 +1,14 @@
+{% extends 'busca/base.html' %}
+{% block content %}
+<div  class="post">
+<form action="/busca/buscaconteiner/" method="post" id="frmimagem">
+{% csrf_token %}
+Numero: <input type="text" name="numero" value="{{ numero }}">
+Data inicial: <input type="text" name="datainicial" value="{{ datainicial }}">
+Data final: <input type="text" name="datafinal" value="{{ datafinal }}">
+<input type="submit" value="Submit">
+</form>
+</div>
+{% include "busca/buscaimagem.html" %}
+{% endblock %}
+

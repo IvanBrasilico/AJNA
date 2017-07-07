@@ -1,0 +1,18 @@
+{% extends 'busca/base.html' %}
+{% block content %}
+<div class="post">
+            <div class="date">
+                Data de registro: {{ conteinerescaneado.pub_date }}
+            </div>
+            <p>Numero: {{ conteinerescaneado.numero }}</p>
+            <p>Truck ID: {{ conteinerescaneado.truckid }}</p>
+            <p>Fonte: {{ conteinerescaneado.fonte.nome }}</p>
+            Miniatura:<br>
+            <img src="/static/busca/{{ conteinerescaneado.arqimagem }}" alt="{{ conteinerescaneado.arqimagem }}"/><br>
+            <a href="/busca/buscasimilar/{{ conteinerescaneado.id }}/"> Procura similar</a>
+
+            <h1>{{ testavazio }}</h1>
+            Imagem 'Stamp' original:<br>
+            <img src="/static/busca/{{ conteinerescaneado.arqimagemoriginal }}" alt="{{ conteinerescaneado.arqimagemoriginal }}"/><br>
+</div>
+{% endblock %}

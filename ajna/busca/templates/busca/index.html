@@ -1,0 +1,31 @@
+{% extends 'busca/base.html' %}
+{% block content %}
+
+<div class="post">
+<ul>
+<li><a href="/busca/buscaconteiner/">Pesquisar contêiner</a></li>
+<br>
+<li><a href="/busca/frmlistavazios/">Processar lista de vazios</a></li>
+<br>
+<li><a href="/busca/frmimagem/">Enviar imagem para buscar</a></li>
+<br>
+<li><a href="/busca/indexar/">Indexar imagens disponíveis</a></li>
+<br>
+<li><a href="/busca/frmcomparapesos/">Comparar pesagens com imagens disponíveis</a></li>
+</ul>
+<br>&nbsp;
+</div>
+<hr></hr>
+<div class="post">
+<p>Lista de Recintos que fornecem imagens</p>
+{% if FonteImagem_list %}
+    <ul>
+    {% for FonteImagem in FonteImagem_list %}
+        <li><a href="/busca/{{ FonteImagem.id }}/">{{ FonteImagem.nome }}</a></li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>Sem fontes cadastradas.</p>
+{% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends 'busca/base.html' %}
+{% block content %}
+<div  class="post">
+<p>Este formulário serve para UPLOAD dos dados de peso das balanças e/ou do Carga</p>
+<p>O sistema irá comparar ambos e comparar também o peso estimado de acordo com a imagem e fornecer tabelas de resposta, com estatísticas</p>
+</div>
+<div  class="post">
+<form action="/busca/comparapesos/" method="post" enctype="multipart/form-data" id="frmcomparapesos">
+{% csrf_token %}
+<h3>Informe um arquivo CSV com os números de contêineres e pesos das balanças</h3>
+<input type="file" name="pesosADE"><br>
+<input type="file" name="pesosCarga"><br>
+<input type="submit" value="Submit">
+</form>
+</div>
+{% endblock %}

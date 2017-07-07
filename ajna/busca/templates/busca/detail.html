@@ -1,0 +1,22 @@
+{% extends 'busca/base.html' %}
+{% block content %}
+<div class="post">
+            <div class="date">
+                Data de publicação: {{ fonteimagem.pub_date }}
+            </div>
+            <p>Nome: {{ fonteimagem.nome }}</p>
+            <p>Caminho: {{ fonteimagem.caminho }}</p>
+            <a href="/admin/busca/fonteimagem/{{ fonteimagem.id }}/change/" target="_BLANK">Editar</a>
+
+</div>
+<h3>Copiar imagens de uma fonte de escaneamento</h3>
+<div class="post">
+<form action="/busca/carregaimagens/" method="post" id="frmcarregaimagens">
+{% csrf_token %}
+ Caminho a copiar:<br>
+ <input type="hidden" name="fonteimagem" value="{{ fonteimagem.id }}">
+<input type="text" name="caminho"><br>
+<input type="submit" value="Submit">
+</form>
+</div>
+{% endblock %}

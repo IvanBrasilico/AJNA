@@ -1,0 +1,13 @@
+{% extends 'busca/base.html' %}
+{% block content %}
+<div  class="post">
+
+<form action="/busca/listavazios/" method="post" enctype="multipart/form-data" id="frmlistavazios">
+{% csrf_token %}
+Informe um arquivo CSV com os números de contêineres da lista de vazios
+<input type="file" name="csv"><br>
+<input type="submit" value="Submit">
+</form>
+</div>
+
+{% endblock %}
