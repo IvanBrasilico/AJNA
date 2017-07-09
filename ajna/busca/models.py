@@ -29,3 +29,9 @@ class ConteinerEscaneado(models.Model):
     def __str__(self):
         return self.numero
 
+class Agendamento(models.Model):
+    fonte = models.ForeignKey(FonteImagem, on_delete=models.CASCADE)
+    mascarafiltro = models.CharField(max_length=20)
+    diaspararepetir = models.IntegerField()
+    proximocarregamento = models.DateTimeField('Data do próximo agendamento')
+

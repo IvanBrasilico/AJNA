@@ -3,7 +3,12 @@ import numpy as np
 import os
 import glob
 from scipy import misc
+import xml.etree.ElementTree as ET
+import fnmatch
+from .models import ConteinerEscaneado
+from shutil import copyfile
 
+from django.db import IntegrityError
 
 def loadimages(path, input):
     numarquivos = int(len([name for name in os.listdir(path) if name.endswith('jpg')]))
@@ -83,7 +88,63 @@ def recortaesalva(ofile, size, odest):
         os.remove(destfile)
         return imnova
 
-def carregaarquivos(path):
-    return ""
+def carregaarquivos(path, pathdest, size, fonteimagem):
+    print(path)
+    numero = None
+    mensagem = "Imagens carregadas!"
+    for result in glob.iglob(path):
+        for dirpath, dirnames, files in os.walk(result):
+            for f in fnmatch.filter(files, '*.xml'):
+                print(f)
+                print(dirpath)
+                tree = ET.parse(os.path.join(dirpath, f))
+                root = tree.getroot()
+                for tag in root.iter('ContainerId'):
+                    lnumero = tag.text
+                    if lnumero is not None:
+                        print("Numero")
+                        print(lnumero)
+                        numero = lnumero
+                for tag in root.iter('TruckId'):
+                    truckid=tag.text
+                    print(truckid)
+                for tag in root.iter('Date'):
+                    data=tag.text
+                    print(data)
+                if numero is not None:
+                    print('Processando...')
+                    ano = data[:4]
+                    mes = data[5:7]
+                    dia = data[8:10]
+                    destparcial = os.path.join(ano, mes, dia, numero)
+                    destcompleto = os.path.join(pathdest, destparcial)
+                    print(destcompleto)
+                    print(destparcial)
+                    try:
+                        os.makedirs(destcompleto)
+                    except IOError as e:
+                        print ("Unexpected error: "+e.strerror)
+                        pass
+                    copyfile(os.path.join(dirpath, f), os.path.join(destcompleto, f))
+                    for file in glob.glob(os.path.join(dirpath,'*mp.jpg')):
+                        name = os.path.basename(file)
+                        print(name)
+                        copyfile(file, os.path.join(destcompleto, name))
+                        recortaesalva(file, size, os.path.join(destcompleto, numero+'.jpg'))
+                        c = ConteinerEscaneado()
+                        c.numero = numero
+                        c.arqimagem = destparcial+'/'+numero+'.jpg'
+                        c.arqimagemoriginal = destparcial+'/'+name
+                        c.fonte = fonteimagem
+                        c.pub_date = data
+                        c.truckid = truckid
+                        try:
+                            c.save()
+                            mensagem = mensagem + numero + " incluído"
+                        except IntegrityError as e:
+                            mensagem = mensagem + numero + " já cadastrado?!"
+                    numero = None
+
+    return mensagem
 
 

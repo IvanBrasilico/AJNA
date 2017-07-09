@@ -1,10 +1,11 @@
 from django.shortcuts import render, render_to_response, get_object_or_404
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.db import IntegrityError
 # Create your views here.
 from django.views import generic
 from .models import FonteImagem, ConteinerEscaneado
 from .forms import ImageUploadForm
+import csv
+from io import StringIO
 
 from PIL import Image
 import numpy as np
@@ -12,9 +13,6 @@ import io
 from datetime import datetime
 import pickle
 import os
-import fnmatch
-import glob
-from shutil import copyfile
 import tflearn
 
 ### Inicialização/configuração - depois COLOCAR EM ARQUIVO ESPECÍFICO
@@ -95,6 +93,21 @@ def listavazios(request): # Formulário para fazer UPLOAD de imagem a buscar
                                                           'listavazios': listavazios,
                                                           'listanaovazios' : listanaovazios,
                                                           'listanaoencontrados': listanaoencontrados})
+def comparapesos(request): # Formulário para fazer UPLOAD de imagem a buscar
+    mensagem = ""
+    if request.POST and request.FILES:
+        csvade = request.FILES['pesosA']
+        csva = StringIO(csvade.read().decode())
+        readera = csv.reader(csva)
+        csvcarga = request.FILES['pesosCarga']
+        csvc = StringIO(csvcarga.read().decode())
+        readerc = csv.reader(csvc)
+        for row in reader:
+            print(row)
+    return render(request, 'busca/comparacaodepesos.html' , {'mensagem': mensagem,})
+
+    
+    
 def buscasimilar(request,pk):
     global order
     global imgsimilar
@@ -190,6 +203,29 @@ def buscaimagem(request): #Recebe uma imagem via form HTML e monta listaordenada
     return paginatorconteiner(request, ConteinerEscaneado_list, 'busca/buscaconteiner.html', numero, datainicial, datafinal)
 
 
+from django.db import transaction
+@transaction.atomic
+def indexar(request):
+    conteineressemcodigo = ConteinerEscaneado.objects.filter(codigoplano__isnull="True")
+    for c in conteineressemcodigo:
+        img = Image.open(os.path.join(staticdir, c.arqimagem))
+        X = np.asarray(img).reshape(inputsize)
+        X = X / 255
+        compressed = np.array(encoding_model.predict([X]), dtype=np.float32)
+        c.codigoplano =  pickle.dumps(compressed)
+        c.save()
+    return render_to_response('busca/index.html', {'mensagem': 'Indexação realizada!', 'FonteImagem_list': FonteImagem.objects.all()} )
+
+def carregaimagens(request):
+    fonteimagem = FonteImagem.objects.get(pk=request.POST['fonteimagem'])
+    caminho = request.POST['caminho']
+    from .filefunctions import carregaarquivos
+    path = os.path.join(fonteimagem.caminho, caminho)
+    pathdest = os.path.join(homedir, "static/busca/")
+    mensagem = carregaarquivos(path, pathdest, size, fonteimagem)
+    return render_to_response('busca/index.html',
+                        {'mensagem': mensagem, 'FonteImagem_list': FonteImagem.objects.all()} )
+
 #from django.db import transaction
 #@transaction.atomic
 def indexarold(request):
@@ -218,89 +254,5 @@ def indexarold(request):
                     (numero, pub_date, arqimagem, fonte, pickle.dumps(compressed[cont])))
         cont+=1
     cur.execute("END")
-
     #transaction.commit()
     return render_to_response('busca/index.html', {'mensagem': 'Indexação realizada!', 'FonteImagem_list': FonteImagem.objects.all()} )
-
-
-from django.db import transaction
-@transaction.atomic
-def indexar(request):
-    conteineressemcodigo = ConteinerEscaneado.objects.filter(codigoplano__isnull="True")
-    for c in conteineressemcodigo:
-        img = Image.open(os.path.join(staticdir, c.arqimagem))
-        X = np.asarray(img).reshape(inputsize)
-        X = X / 255
-        compressed = np.array(encoding_model.predict([X]), dtype=np.float32)
-        c.codigoplano =  pickle.dumps(compressed)
-        c.save()
-    return render_to_response('busca/index.html', {'mensagem': 'Indexação realizada!', 'FonteImagem_list': FonteImagem.objects.all()} )
-
-
-def carregaimagens(request):
-    fonteimagem = FonteImagem.objects.get(pk=request.POST['fonteimagem'])
-    caminho = request.POST['caminho']
-    from .filefunctions import carregaarquivos
-    from .filefunctions import recortaesalva
-    import xml.etree.ElementTree as ET
-    path = os.path.join(fonteimagem.caminho, caminho)
-    pathdest = os.path.join(homedir, "static/busca/")
-    print(path)
-    numero = None
-    mensagem = "Imagens carregadas!"
-    for result in glob.iglob(path):
-        for dirpath, dirnames, files in os.walk(result):
-            for f in fnmatch.filter(files, '*.xml'):
-                print(f)
-                print(dirpath)
-                tree = ET.parse(os.path.join(dirpath, f))
-                root = tree.getroot()
-                for tag in root.iter('ContainerId'):
-                    lnumero = tag.text
-                    if lnumero is not None:
-                        print("Numero")
-                        print(lnumero)
-                        numero = lnumero
-                for tag in root.iter('TruckId'):
-                    truckid=tag.text
-                    print(truckid)
-                for tag in root.iter('Date'):
-                    data=tag.text
-                    print(data)
-                if numero is not None:
-                    print('Processando...')
-                    ano = data[:4]
-                    mes = data[5:7]
-                    dia = data[8:10]
-                    destparcial = os.path.join(ano, mes, dia, numero)
-                    destcompleto = os.path.join(pathdest, destparcial)
-                    print(destcompleto)
-                    print(destparcial)
-                    try:
-                        os.makedirs(destcompleto)
-                    except IOError as e:
-                        print ("Unexpected error: "+e.strerror)
-                        pass
-                    copyfile(os.path.join(dirpath, f), os.path.join(destcompleto, f))
-                    for file in glob.glob(os.path.join(dirpath,'*mp.jpg')):
-                        name = os.path.basename(file)
-                        print(name)
-                        copyfile(file, os.path.join(destcompleto, name))
-                        recortaesalva(file, size, os.path.join(destcompleto, numero+'.jpg'))
-                        c = ConteinerEscaneado()
-                        c.numero = numero
-                        c.arqimagem = destparcial+'/'+numero+'.jpg'
-                        c.arqimagemoriginal = destparcial+'/'+name
-                        c.fonte = fonteimagem
-                        c.pub_date = data
-                        c.truckid = truckid
-                        try:
-                            c.save()
-                            mensagem = mensagem + numero + " incluído"
-                        except IntegrityError as e:
-                            mensagem = mensagem + numero + " já cadastrado?!"
-                            
-                            
-                        
-                    numero = None
-    return render_to_response('busca/index.html', {'mensagem': mensagem, 'FonteImagem_list': FonteImagem.objects.all()} )
