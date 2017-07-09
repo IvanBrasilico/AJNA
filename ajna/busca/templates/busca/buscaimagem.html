@@ -1,36 +1,4 @@
 {% extends 'busca/base.html' %}
 {% block content %}
-</div>
-</div>
-{% if conteineres %}
-    <div class="row">
-    {% for ConteinerEscaneado in conteineres %}
-        <a href="/busca/conteiner/{{ ConteinerEscaneado.id }}/"><img src="/static/busca/{{ ConteinerEscaneado.arqimagem }}"
-           alt="{{ ConteinerEscaneado.arqimagem }}"/>
-         <a href="/busca/conteiner/{{ ConteinerEscaneado.id }}/">{{ ConteinerEscaneado.numero }}</a>
-        {% if forloop.counter|divisibleby:3 %}
-        </div>
-    <div class="row">
-        {% endif %}
-    {% endfor %}
-        </div>
-{% else %}
-    <p>Sem imagens cadastradas.</p>
-{% endif %}
-
-<div class="pagination">
-    <span class="step-links">
-        {% if conteineres.has_previous %}
-            <a href="?page={{ conteineres.previous_page_number }}">previous</a>
-        {% endif %}
-
-        <span class="current">
-            Page {{ conteineres.number }} of {{ conteineres.paginator.num_pages }}.
-        </span>
-
-        {% if conteineres.has_next %}
-            <a href="?page={{ conteineres.next_page_number }}">next</a>
-        {% endif %}
-    </span>
-</div>
+{% include "busca/buscaimagembase.html" %}
 {% endblock %}

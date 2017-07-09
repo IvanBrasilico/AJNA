@@ -1,0 +1,35 @@
+{% block content %}
+{% if conteineres %}
+  <div class="w3-row-padding w3-padding-16 w3-center">
+    {% for ConteinerEscaneado in conteineres %}
+    <div class="w3-quarter">
+        <a href="/busca/conteiner/{{ ConteinerEscaneado.id }}/"><img src="/static/busca/{{ ConteinerEscaneado.arqimagem }}"
+           alt="{{ ConteinerEscaneado.arqimagem }}"  style="width:100%">
+         <p><a href="/busca/conteiner/{{ ConteinerEscaneado.id }}/">{{ ConteinerEscaneado.numero }}</a></p>
+    </div>
+    {% if forloop.counter|divisibleby:4 %}
+    </div>
+    <div class="w3-row-padding w3-padding-16 w3-center">
+    {% endif %}
+    {% endfor %}
+    </div>
+{% else %}
+    <p>Sem imagens cadastradas.</p>
+{% endif %}
+
+<div class="pagination">
+    <span class="step-links">
+        {% if conteineres.has_previous %}
+            <a href="?page={{ conteineres.previous_page_number }}">Anterior </a>
+        {% endif %}
+
+        <span class="current">
+            Pag. {{ conteineres.number }} of {{ conteineres.paginator.num_pages }}.
+        </span>
+
+        {% if conteineres.has_next %}
+            <a href="?page={{ conteineres.next_page_number }}"> Proxima</a>
+        {% endif %}
+    </span>
+</div>
+{% endblock %}

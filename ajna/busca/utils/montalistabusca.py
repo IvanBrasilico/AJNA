@@ -9,7 +9,7 @@ import pickle
 def montaorder(image, encoding_model):
     con = sql.connect('db.sqlite3',isolation_level=None)
     cur = con.cursor()
-    image.thumbnail((256,120), Image.ANTIALIAS)
+    image = image.resize((256,120), Image.ANTIALIAS)
     imageSearch = np.asarray(image).reshape(256*120)
     imageSearch = imageSearch / 255
     compressedSearch = np.array(encoding_model.predict([imageSearch]), dtype=np.float32)

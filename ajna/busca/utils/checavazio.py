@@ -3,10 +3,12 @@ import pickle
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 from scipy import misc
+from ajna.settings import BASE_DIR
+import os
 
 n_bins = 32
-histograms = pickle.load(open("/home/ivan/Estudo/NanoDegree/ajna/busca/utils/histograms.pkl", "rb"))
-labels = pickle.load(open("/home/ivan/Estudo/NanoDegree/ajna/busca/utils/labels.pkl", "rb"))
+histograms = pickle.load(open(os.path.join(BASE_DIR, 'busca', 'utils', 'histograms.pkl'), "rb"))
+labels = pickle.load(open(os.path.join(BASE_DIR, 'busca', 'utils', 'labels.pkl'), "rb"))
 clf = RandomForestClassifier()
 clf.fit(histograms, labels)
 

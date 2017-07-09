@@ -103,7 +103,7 @@ def buscasimilar(request,pk):
     return buscaimagem(request)
 
 def paginatorconteiner(request, ConteinerEscaneado_list, template, numero="", datainicial="", datafinal=""):
-    paginator = Paginator(ConteinerEscaneado_list, 15) # Show 15 contacts per page
+    paginator = Paginator(ConteinerEscaneado_list, 12) # Show 12 images per page
     page = request.GET.get('page')
     try:
         conteineres = paginator.page(page)
@@ -143,7 +143,11 @@ def buscaimagem(request): #Recebe uma imagem via form HTML e monta listaordenada
         form = ImageUploadForm(request.POST, request.FILES)
         if form.is_valid():
             buf = request.FILES['image'].read()
-            img = Image.open(io.BytesIO(buf))
+            img = Image.open(io.BytesIO(buf)).convert('L')
+            print("Shape")
+            print(img.size)
+            img = img.resize(size)
+            print(img.size)
             order = montalistabusca.montaorder(img, encoding_model)
     ConteinerEscaneadol = list(ConteinerEscaneado.objects.all())
     ConteinerEscaneado_list = []
