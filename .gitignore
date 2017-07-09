@@ -45,10 +45,22 @@ ajna/busca/__pycache__/
 
 ajna/busca/plano/
 
-ajna/busca/static/busca/
+ajna/busca/static/busca/2017/
+
+ajna/busca/static/busca/2018/
+
+ajna/busca/static/busca/2019/
+
+ajna/busca/static/busca/2020/
+
+ajna/busca/static/busca/2021/
 
 ajna/busca/utils/__pycache__/
 
 *.sqlite3
 
 Buscador/modelconv\.ckpt\.data-00000-of-00001
+
+ajna/busca/static/busca/\.directory
+
+\.directory
