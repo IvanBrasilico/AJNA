@@ -15,8 +15,32 @@ Including another URLconf
 """
 from django.conf.urls import include, url
 from django.contrib import admin
+from busca.models import trata_agendamentos
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^busca/', include('busca.urls')),
 ]
+
+
+##Inicia Thread para checar agendamentos!!!
+import threading
+import schedule
+import time
+
+class myThread (threading.Thread):
+   def __init__(self, threadID, name):
+      threading.Thread.__init__(self)
+      self.threadID = threadID
+      self.name = name
+      self.lastrun = 0
+   def run(self):
+       print ("Starting " + self.name)
+       schedule.every(30).minutes.do(trata_agendamentos)
+       while True:
+           schedule.run_pending()
+           time.sleep(1)
+       print ("Exiting " + self.name)
+
+thread1 = myThread(1, "Thread-Agendamentos")
+thread1.start()

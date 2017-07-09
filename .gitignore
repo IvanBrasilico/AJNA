@@ -64,3 +64,5 @@ Buscador/modelconv\.ckpt\.data-00000-of-00001
 ajna/busca/static/busca/\.directory
 
 \.directory
+
+ajna/busca/migrations/__pycache__/

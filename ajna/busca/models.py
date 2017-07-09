@@ -1,5 +1,5 @@
 from django.db import models
-
+from datetime import datetime
 # Create your models here.
 
 class FonteImagem(models.Model):
@@ -34,4 +34,22 @@ class Agendamento(models.Model):
     mascarafiltro = models.CharField(max_length=20)
     diaspararepetir = models.IntegerField()
     proximocarregamento = models.DateTimeField('Data do próximo agendamento')
+    class Meta:
+        indexes = [
+            models.Index(fields=['proximocarregamento']),
+        ]
+    def agendamentos_pendentes():
+        return Agendamento.objects.all().filter(proximocarregamento__lt=datetime.now())
+    def __str__(self):
+        return self.fonte.nome
+
+def trata_agendamentos():
+       lista_agendamentos = Agendamento.agendamentos_pendentes()
+       if len(lista_agendamentos) > 0:
+           print("Tem agendamentos!")
+           #processa_agendamentos(lista_agendamentos)
+       else:
+           print("Não tem agendamentos!")
+    
+
 
