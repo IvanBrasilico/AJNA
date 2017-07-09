@@ -1,16 +1,27 @@
 {% extends 'busca/base.html' %}
 {% block content %}
 <div class="w3-container w3-padding-32 w3-left">  
-            <p>    Data de registro: {{ conteinerescaneado.pub_date }}</p>
-            <p>Numero: {{ conteinerescaneado.numero }}</p>
-            <p>Truck ID: {{ conteinerescaneado.truckid }}</p>
-            <p>Fonte: {{ conteinerescaneado.fonte.nome }}</p>
-            <p>Miniatura:</pr>
+            <div class="w3-third"><b>
+            <p>Data de registro:</p>
+            <p>Numero:</p>
+            <p>Truck ID:</p>
+            <p>Fonte:</p></b>
+            </div>
+            <div class="w3-third"><p> {{ conteinerescaneado.pub_date }}</p>
+            {{ conteinerescaneado.numero }}</p>
+             {{ conteinerescaneado.truckid }}</p>
+             {{ conteinerescaneado.fonte.nome }}</p>
+            </div>
+            <div class="w3-third">
+            <b>Miniatura</b><br>
             <img src="/static/busca/{{ conteinerescaneado.arqimagem }}" alt="{{ conteinerescaneado.arqimagem }}"/><br>
-            <p><a href="/busca/buscasimilar/{{ conteinerescaneado.id }}/"> Procura similar</a></p>
+            </div>
+            <div class="w3-container w3-padding-32 w3-left">
+            <h5><i><a href="/busca/buscasimilar/{{ conteinerescaneado.id }}/"> Procura similar</a></i></h5>
 
             <h1>{{ testavazio }}</h1>
              <p>Imagem 'Stamp' original:</p>
             <img src="/static/busca/{{ conteinerescaneado.arqimagemoriginal }}" alt="{{ conteinerescaneado.arqimagemoriginal }}"/><br>
+            </div>
 </div>
 {% endblock %}

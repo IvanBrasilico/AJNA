@@ -6,13 +6,17 @@ import numpy as np
 from PIL import Image
 import pickle
 
-def montaorder(image, encoding_model):
-    con = sql.connect('db.sqlite3',isolation_level=None)
-    cur = con.cursor()
+def compressedimg(image, encoding_model):
     image = image.resize((256,120), Image.ANTIALIAS)
     imageSearch = np.asarray(image).reshape(256*120)
     imageSearch = imageSearch / 255
-    compressedSearch = np.array(encoding_model.predict([imageSearch]), dtype=np.float32)
+    return np.array(encoding_model.predict([imageSearch]), dtype=np.float32)
+
+def montaorder(image, encoding_model):
+    con = sql.connect('db.sqlite3',isolation_level=None)
+    cur = con.cursor()
+    compressedSearch = compressedimg(image, encoding_model)
+    print(compressedSearch)
     #print('compressedSearch')
     #print(compressedSearch)
     cur.execute("SELECT codigoplano FROM busca_conteinerescaneado WHERE codigoplano is not null")
@@ -27,4 +31,17 @@ def montaorder(image, encoding_model):
     print("Ordem:")
     print(order)
     return order
+
+def ordenalista(image, encoding_model, lista):
+    compressedSearch = compressedimg(image, encoding_model)
+    print(compressedSearch)
+    nregistros = len(lista)
+    imagelistSearch = np.empty((nregistros, 200))
+    for r in range(0, nregistros):
+        imageCompressed = np.array(pickle.loads(lista[r].codigoplano), dtype=np.float32)
+        imagelistSearch[r] = imageCompressed
+    order = montaListaOrdenadaEuclidean(imagelistSearch, compressedSearch)
+    return order
+    
+    
 

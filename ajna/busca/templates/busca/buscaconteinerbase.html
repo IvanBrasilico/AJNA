@@ -1,6 +1,6 @@
 {% block content %}
 <div  class="post">
-<form action="/busca/buscaconteiner/" method="post" id="frmimagem">
+<form action="/busca/buscaimagem/" method="post" id="frmbuscaimagem">
 {% csrf_token %}
 Numero: <input type="text" name="numero" value="{{ numero }}">
 Data inicial: <input type="text" name="datainicial" value="{{ datainicial }}">

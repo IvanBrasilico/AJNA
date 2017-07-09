@@ -33,9 +33,11 @@ global encoding_model
 encoding_model = tflearn.DNN(encoder, session=model.session)
 print("Modelo carregado")   
 global order
+global imgsimilar
 #homedir = '/home/ivan/Estudo/NanoDegree/ajna/busca/'
 staticdir = os.path.join(homedir, 'static/busca')
 order = None
+imgsimilar = None
 
 class IndexView(generic.ListView):
     template_name = 'busca/index.html'
@@ -93,16 +95,16 @@ def listavazios(request): # Formulário para fazer UPLOAD de imagem a buscar
                                                           'listavazios': listavazios,
                                                           'listanaovazios' : listanaovazios,
                                                           'listanaoencontrados': listanaoencontrados})
-
-
 def buscasimilar(request,pk):
     global order
+    global imgsimilar
     conteiner = get_object_or_404(ConteinerEscaneado, pk=pk)
     img = Image.open(os.path.join(homedir, "static/busca/", conteiner.arqimagem))
     order = montalistabusca.montaorder(img, encoding_model)
+    imgsimilar = img
     return buscaimagem(request)
 
-def paginatorconteiner(request, ConteinerEscaneado_list, template, numero="", datainicial="", datafinal=""):
+def paginatorconteiner(request, ConteinerEscaneado_list, template, numero="", datainicial="", datafinal="", img=""):
     paginator = Paginator(ConteinerEscaneado_list, 12) # Show 12 images per page
     page = request.GET.get('page')
     try:
@@ -113,17 +115,17 @@ def paginatorconteiner(request, ConteinerEscaneado_list, template, numero="", da
     except EmptyPage:
         # If page is out of range (e.g. 9999), deliver last page of results.
         conteineres = paginator.page(paginator.num_pages)
-    context = {'conteineres': conteineres, 'numero':numero, 'datainicial':datainicial, 'datafinal':datafinal }
+    context = {'conteineres': conteineres, 'numero':numero, 'datainicial':datainicial, 'datafinal':datafinal}
     return render(request, template, context )
 
 
 def filtraconteiner(request, numero="", datainicial="", datafinal=""): #Recebe uma imagem via form HTML e monta listaordenada dos contêineres escaneados
-   ConteinerEscaneadol = ConteinerEscaneado.objects.all().order_by('-pub_date', 'numero')
+   ConteinerEscaneadol = ConteinerEscaneado.objects.all()
    if not numero  == "":
        ConteinerEscaneadol = ConteinerEscaneadol.filter(numero__startswith=numero)
    if not ((datainicial == "") or (datafinal == "")):
        ConteinerEscaneadol = ConteinerEscaneadol.filter(pub_date__range=(datainicial, datafinal+' 23:59'))
-   return list(ConteinerEscaneadol)
+   return ConteinerEscaneadol
 
 def buscaconteiner(request): #Recebe uma imagem via form HTML e monta listaordenada dos contêineres escaneados
    numero = ""
@@ -133,13 +135,32 @@ def buscaconteiner(request): #Recebe uma imagem via form HTML e monta listaorden
        numero = request.POST['numero']
        datainicial=request.POST['datainicial']
        datafinal=request.POST['datafinal']
+   else: ## Chamou a primeira vez,  inicialização!
+       global order
+       order = None #Reiniciafiltragem
+       ##Pensar em inicializar datainicial em alguns meses ou um ano atrás para economizar recursor
+       #
+       #
    ConteinerEscaneadol = filtraconteiner(request, numero, datainicial, datafinal)
-   return paginatorconteiner(request, list(ConteinerEscaneadol), 'busca/buscaconteiner.html', numero, datainicial, datafinal)
+   return paginatorconteiner(request, list(ConteinerEscaneadol.order_by('-pub_date', 'numero')), 'busca/buscaconteiner.html', numero, datainicial, datafinal)
 
 
 def buscaimagem(request): #Recebe uma imagem via form HTML e monta listaordenada dos contêineres escaneados
     global order
-    if (request.method == 'POST'):
+    global imgsimilar
+    numero = ""
+    datainicial=""
+    datafinal=""
+    if request.POST:
+        try:
+            numero = request.POST['numero']
+        except:
+            numero = ""
+        if not numero  == "":
+            datainicial=request.POST['datainicial']
+            datafinal=request.POST['datafinal']
+    ConteinerEscaneadol = filtraconteiner(request, numero, datainicial, datafinal)
+    if request.POST:
         form = ImageUploadForm(request.POST, request.FILES)
         if form.is_valid():
             buf = request.FILES['image'].read()
@@ -148,19 +169,25 @@ def buscaimagem(request): #Recebe uma imagem via form HTML e monta listaordenada
             print(img.size)
             img = img.resize(size)
             print(img.size)
-            order = montalistabusca.montaorder(img, encoding_model)
-    ConteinerEscaneadol = list(ConteinerEscaneado.objects.all())
+            imgsimilar = img
+            order = montalistabusca.ordenalista(imgsimilar, encoding_model, ConteinerEscaneadol)
+            #order = montalistabusca.montaorder(img, encoding_model)
     ConteinerEscaneado_list = []
     if order is not None:
+        print("Ordenando...")
+        if len(order) != len(ConteinerEscaneadol):#Filtrado, reindexar
+            print("Lista filtrada...")
+            order = montalistabusca.ordenalista(imgsimilar, encoding_model, ConteinerEscaneadol)
+        ConteinerEscaneadol = list(ConteinerEscaneadol)
         for index in order:
             ConteinerEscaneado_list.append(ConteinerEscaneadol[index])
         #print('ordered')
         #print(ConteinerEscaneado_list[0])
     else:
-        ConteinerEscaneado_list = ConteinerEscaneadol
+        ConteinerEscaneado_list = list(ConteinerEscaneadol.order_by('-pub_date', 'numero'))
         #print('not ordered')
         #print(ConteinerEscaneado_list[0])
-    return paginatorconteiner(request, ConteinerEscaneado_list, 'busca/buscaimagem.html')
+    return paginatorconteiner(request, ConteinerEscaneado_list, 'busca/buscaconteiner.html', numero, datainicial, datafinal)
 
 
 #from django.db import transaction
@@ -214,7 +241,7 @@ def carregaimagens(request):
     fonteimagem = FonteImagem.objects.get(pk=request.POST['fonteimagem'])
     caminho = request.POST['caminho']
     from .filefunctions import carregaarquivos
-    from .filefunctions import recorta
+    from .filefunctions import recortaesalva
     import xml.etree.ElementTree as ET
     path = os.path.join(fonteimagem.caminho, caminho)
     pathdest = os.path.join(homedir, "static/busca/")
