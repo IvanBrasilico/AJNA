@@ -5,7 +5,6 @@ import glob
 from scipy import misc
 import xml.etree.ElementTree as ET
 import fnmatch
-from .models import ConteinerEscaneado
 from shutil import copyfile
 
 from django.db import IntegrityError
@@ -88,10 +87,14 @@ def recortaesalva(ofile, size, odest):
         os.remove(destfile)
         return imnova
 
-def carregaarquivos(path, pathdest, size, fonteimagem):
+def carregaarquivos(homedir, caminho, size, fonteimagem):
+    path = os.path.join(fonteimagem.caminho, caminho)
+    pathdest = os.path.join(homedir, "static/busca/")
     print(path)
     numero = None
     mensagem = "Imagens carregadas!"
+    from .models import ConteinerEscaneado
+
     for result in glob.iglob(path):
         for dirpath, dirnames, files in os.walk(result):
             for f in fnmatch.filter(files, '*.xml'):
@@ -146,5 +149,7 @@ def carregaarquivos(path, pathdest, size, fonteimagem):
                     numero = None
 
     return mensagem
+
+    
 
 

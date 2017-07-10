@@ -1,11 +1,15 @@
 from django.shortcuts import render, render_to_response, get_object_or_404
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.template import RequestContext
 # Create your views here.
 from django.views import generic
 from .models import FonteImagem, ConteinerEscaneado
 from .forms import ImageUploadForm
 import csv
 from io import StringIO
+import pandas as pd
+import locale
+locale.setlocale(locale.LC_ALL, '')
 
 from PIL import Image
 import numpy as np
@@ -60,15 +64,10 @@ def frmimagem(request): # Formulário para fazer UPLOAD de imagem a buscar
 def frmcomparapesos(request): # Formulário para fazer UPLOAD de CSV a buscar
     return render(request, 'busca/frmcomparapesos.html' )
 
-def comparapesos(request): # Formulário para fazer UPLOAD de CSV a buscar
-    return render(request, 'busca/comparapesos.html' )
-
 def frmlistavazios(request): # Formulário para fazer UPLOAD de CSV a buscar
     return render(request, 'busca/frmlistavazios.html' )
 
-def listavazios(request): # Formulário para fazer UPLOAD de imagem a buscar
-    import csv
-    from io import StringIO
+def listavazios(request): # Trata UPLOAD de CSV
     mensagem = ""
     if request.POST and request.FILES:
         csvfile = request.FILES['csv']
@@ -93,19 +92,39 @@ def listavazios(request): # Formulário para fazer UPLOAD de imagem a buscar
                                                           'listavazios': listavazios,
                                                           'listanaovazios' : listanaovazios,
                                                           'listanaoencontrados': listanaoencontrados})
-def comparapesos(request): # Formulário para fazer UPLOAD de imagem a buscar
+def comparapesos(request): # Trata UPLOAD de CSV
     mensagem = ""
     if request.POST and request.FILES:
-        csvade = request.FILES['pesosA']
+        csvade = request.FILES['pesosADE']
         csva = StringIO(csvade.read().decode())
-        readera = csv.reader(csva)
+        dfa = pd.read_csv(csva, names = ['Contêiner', 'B - Peso verificado em balança'])
         csvcarga = request.FILES['pesosCarga']
         csvc = StringIO(csvcarga.read().decode())
-        readerc = csv.reader(csvc)
-        for row in reader:
-            print(row)
-    return render(request, 'busca/comparacaodepesos.html' , {'mensagem': mensagem,})
-
+        dfc = pd.read_csv(csvc, names = ['Contêiner', 'A - Peso declarado Sistema Carga'])
+        df = pd.merge(dfc, dfa, how='outer')
+        df['A-B'] = df['A - Peso declarado Sistema Carga'] - df['B - Peso verificado em balança']
+        df['C - Peso estimado pela imagem'] = np.nan
+        cont = 0
+        for num in df['Contêiner']:
+            try:
+                conteiner = ConteinerEscaneado.objects.get(numero=num)
+                df['Contêiner'][cont] = "<a href=\"/busca/conteiner/"+str(conteiner.id)+"/\">"+df['Contêiner'][cont]+"</a>"
+                df['C - Peso estimado pela imagem'][cont] = 0
+            except:
+                pass
+            cont+=1
+            
+        df ['A-C'] = df['A - Peso declarado Sistema Carga'] - df['C - Peso estimado pela imagem']
+        df ['%%%'] = (abs(df['A-C'])+abs(df['A-B']))/(df['A - Peso declarado Sistema Carga']*2)
+        df.sort_values('%%%', ascending=False, inplace=True, na_position='first')
+        df = df.fillna('Não encontrado!!!')
+        html_table = df.to_html(index=False, escape=False, float_format="{0:.2f}".format)
+        print("Pandas enviado!!!")
+        print(df)
+        #print(html_table)
+    else:
+        mensagem = "Arquivos de peso declarado e balanças não enviados!"
+    return render_to_response('busca/comparacaodepesos.html', {'mensagem': mensagem,'html_table': html_table}, RequestContext(request))
     
     
 def buscasimilar(request,pk):
@@ -220,9 +239,7 @@ def carregaimagens(request):
     fonteimagem = FonteImagem.objects.get(pk=request.POST['fonteimagem'])
     caminho = request.POST['caminho']
     from .filefunctions import carregaarquivos
-    path = os.path.join(fonteimagem.caminho, caminho)
-    pathdest = os.path.join(homedir, "static/busca/")
-    mensagem = carregaarquivos(path, pathdest, size, fonteimagem)
+    mensagem = carregaarquivos(homedir, caminho, size, fonteimagem)
     return render_to_response('busca/index.html',
                         {'mensagem': mensagem, 'FonteImagem_list': FonteImagem.objects.all()} )
 

@@ -1,5 +1,6 @@
 from django.db import models
 from datetime import datetime
+from .filefunctions import carregaarquivos
 # Create your models here.
 
 class FonteImagem(models.Model):
@@ -8,8 +9,6 @@ class FonteImagem(models.Model):
     pub_date = models.DateTimeField('Data de registro')
     def __str__(self):
         return self.nome
-
-
 class ConteinerEscaneado(models.Model):
     fonte = models.ForeignKey(FonteImagem, on_delete=models.CASCADE)
     numero = models.CharField(max_length=11)
@@ -25,31 +24,43 @@ class ConteinerEscaneado(models.Model):
             models.Index(fields=['truckid']),
         ]
         unique_together = ("numero", "pub_date")
-    
     def __str__(self):
         return self.numero
 
 class Agendamento(models.Model):
     fonte = models.ForeignKey(FonteImagem, on_delete=models.CASCADE)
-    mascarafiltro = models.CharField(max_length=20)
+    mascarafiltro = models.CharField('Mascara no formato "%Y%m%d" mais qualquer literal', max_length=20) #
     diaspararepetir = models.IntegerField()
     proximocarregamento = models.DateTimeField('Data do próximo agendamento')
     class Meta:
         indexes = [
             models.Index(fields=['proximocarregamento']),
         ]
+    def processamascara(self):
+        return self.proximocarregamento.strftime(self.mascarafiltro)
     def agendamentos_pendentes():
         return Agendamento.objects.all().filter(proximocarregamento__lt=datetime.now())
     def __str__(self):
-        return self.fonte.nome
+        return self.fonte.nome+' '+self.proximocarregamento
 
 def trata_agendamentos():
        lista_agendamentos = Agendamento.agendamentos_pendentes()
        if len(lista_agendamentos) > 0:
            print("Tem agendamentos!")
-           #processa_agendamentos(lista_agendamentos)
+           from .views import homedir, size
+           for ag in lista_agendamentos:
+               fonte = ag.fonte
+               caminho = ag.processamascara()
+               mensagem = carregaarquivos(homedir, caminho, size, fonte)
+               with open('agendamento'+ag.fonte.nome+ag.proximocarregamento, 'w') as f:
+                   f.write(mensagem)
+                   f.close()
+               ag.proximocarregamento = ag.proximocarregamento + datetime.timedelta(days=ag.diaspararepetir)
+               ag.save()
        else:
            print("Não tem agendamentos!")
+           
+
     
 
 
