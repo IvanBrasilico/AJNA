@@ -20,8 +20,8 @@ def vaziooucheio(file):
     cc = misc.imread(file)
     return clf.predict([hist(cc)])
 
-def vaziooucheiodescritivo(file):
-    teste = vaziooucheio(file)
+def vaziooucheiodescritivo(filepath):
+    teste = vaziooucheio(filepath)
     if teste[0] == 0:
         return "Contêiner avaliado como VAZIO"
     else:

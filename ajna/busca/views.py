@@ -22,6 +22,7 @@ import tflearn
 ### Inicialização/configuração - depois COLOCAR EM ARQUIVO ESPECÍFICO
 from .modelfully import modelfully1
 from .utils import checavazio
+from .utils import predizpeso
 from .utils import montalistabusca
 
 size = (256, 120)
@@ -91,7 +92,11 @@ def listavazios(request): # Trata UPLOAD de CSV
     return render(request, 'busca/listavazios.html' , {'mensagem': mensagem, 
                                                           'listavazios': listavazios,
                                                           'listanaovazios' : listanaovazios,
+
                                                           'listanaoencontrados': listanaoencontrados})
+
+import sys
+
 def comparapesos(request): # Trata UPLOAD de CSV
     mensagem = ""
     if request.POST and request.FILES:
@@ -105,15 +110,17 @@ def comparapesos(request): # Trata UPLOAD de CSV
         df['A-B'] = df['A - Peso declarado Sistema Carga'] - df['B - Peso verificado em balança']
         df['C - Peso estimado pela imagem'] = np.nan
         cont = 0
+        pesoestimado = 0
         for num in df['Contêiner']:
             try:
                 conteiner = ConteinerEscaneado.objects.get(numero=num)
                 df['Contêiner'][cont] = "<a href=\"/busca/conteiner/"+str(conteiner.id)+"/\">"+df['Contêiner'][cont]+"</a>"
-                df['C - Peso estimado pela imagem'][cont] = 0
+                pesoestimado = predizpeso.pesoimagem(os.path.join(homedir, "static/busca/", conteiner.arqimagem))
+                print('Peso estimado:' + str(pesoestimado))
+                df['C - Peso estimado pela imagem'][cont] = pesoestimado
             except:
                 pass
             cont+=1
-            
         df ['A-C'] = df['A - Peso declarado Sistema Carga'] - df['C - Peso estimado pela imagem']
         df ['%%%'] = (abs(df['A-C'])+abs(df['A-B']))/(df['A - Peso declarado Sistema Carga']*2)
         df.sort_values('%%%', ascending=False, inplace=True, na_position='first')

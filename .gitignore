@@ -66,3 +66,7 @@ ajna/busca/static/busca/\.directory
 \.directory
 
 ajna/busca/migrations/__pycache__/
+
+ajna/busca/utils/histogramsregressao\.pkl
+
+ajna/busca/utils/labelsregressao\.pkl
