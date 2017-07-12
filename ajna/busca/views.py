@@ -27,13 +27,13 @@ from .utils import montalistabusca
 
 size = (256, 120)
 inputsize = int(size[0]*size[1])
-model, encoder, decoder = modelfully1(inputsize)
+#model, encoder, decoder = modelfully1(inputsize)
 global homedir 
 homedir = os.path.dirname(os.path.abspath(__file__))
 modeldir = os.path.join(homedir, 'plano', 'conteineresencoder.tflearn' )
-model.load(modeldir)
-global encoding_model
-encoding_model = tflearn.DNN(encoder, session=model.session)
+#model.load(modeldir)
+#global encoding_model
+#encoding_model = tflearn.DNN(encoder, session=model.session)
 print("Modelo carregado")   
 global order
 global imgsimilar
