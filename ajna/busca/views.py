@@ -3,13 +3,14 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.template import RequestContext
 # Create your views here.
 from django.views import generic
-from .models import FonteImagem, ConteinerEscaneado
+from .models import FonteImagem, ConteinerEscaneado, Agendamento
 from .forms import ImageUploadForm
 import csv
 from io import StringIO
 import pandas as pd
 import locale
 locale.setlocale(locale.LC_ALL, '')
+import collections
 
 from PIL import Image
 import numpy as np
@@ -42,12 +43,23 @@ staticdir = os.path.join(homedir, 'static/busca')
 order = None
 imgsimilar = None
 
-class IndexView(generic.ListView):
-    template_name = 'busca/index.html'
-    context_object_name = 'FonteImagem_list'
-
-    def get_queryset(self):
-        return FonteImagem.objects.all()
+def indexview(request):
+    FonteImagem_list = FonteImagem.objects.all().order_by('nome')
+    Agregadolist = ConteinerEscaneado.getTotalporFonteImagem()
+    total = ConteinerEscaneado.getTotal()
+    agendamentos = Agendamento.agendamentos_programados()
+    percentuais = { }
+    for o in Agregadolist:
+        percentual = int((o['fcount'] / total) * 600) # 600 = px para exibição
+        fonte = FonteImagem.objects.get(pk=o['fonte'])
+        percentuais.update( {fonte.nome: percentual} )
+    percentuais = collections.OrderedDict(sorted(percentuais.items(), key=lambda t: t[0]))
+    print(percentuais)
+    return render(request, 'busca/index.html',
+                  {'FonteImagem_list': FonteImagem_list,
+                   'agendamentos': agendamentos,
+                   'percentuais':percentuais,
+                   'total':total})
         
 class FonteDetailView(generic.DetailView):
     model = FonteImagem
@@ -89,11 +101,18 @@ def listavazios(request): # Trata UPLOAD de CSV
                     listanaovazios.append(c)
             else:
                 listanaoencontrados.append(row[0])
+        total = len(listavazios)+len(listanaovazios)+len(listanaoencontrados)
+        percvazios =  int((len(listavazios) / total) * 600) #200 = px
+        percnvazios =  int((len(listanaovazios) / total) * 600) #200 = px
+        percnencontrados =  int((len(listanaoencontrados) / total) * 600) #200 = px
+
     return render(request, 'busca/listavazios.html' , {'mensagem': mensagem, 
                                                           'listavazios': listavazios,
                                                           'listanaovazios' : listanaovazios,
-
-                                                          'listanaoencontrados': listanaoencontrados})
+                                                          'listanaoencontrados': listanaoencontrados,
+                                                          'percvazios':percvazios,
+                                                          'percnvazios':percnvazios,
+                                                          'percnencontrados':percnencontrados})
 
 import sys
 

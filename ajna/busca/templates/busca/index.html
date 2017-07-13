@@ -2,13 +2,50 @@
 {% block content %}
 
 <div class="w3-container w3-padding-32 w3-left">  
-<h4>Lista de Recintos que fornecem imagens</h4>
-{% if FonteImagem_list %}
-    {% for FonteImagem in FonteImagem_list %}
-        <h5><a href="/busca/{{ FonteImagem.id }}/">{{ FonteImagem.nome }}</a></h5>
-    {% endfor %}
-{% else %}
-    <p>Sem fontes cadastradas.</p>
-{% endif %}
+    <div class="w3-third">
+        <h4>Lista de Recintos que fornecem imagens</h4>
+        {% if FonteImagem_list %}
+            {% for FonteImagem in FonteImagem_list %}
+                <h5><a href="/busca/{{ FonteImagem.id }}/">{{ FonteImagem.nome }}</a></h5>
+            {% endfor %}
+        {% else %}
+            <p>Sem fontes cadastradas.</p>
+        {% endif %}
+    </div>
+   <div class="w3-third">
+        <style>
+        .chart div {
+          font: 16px sans-serif;
+          background-color: steelblue;
+          text-align: right;
+          padding: 3px;
+          margin: 10px;
+          margin-left: 50px;
+          color: white;
+        }
+        p {
+          margin-left: 50px;
+        }
+        </style>
+        <p>Total de imagens de escaneamento importadas: {{ total }}</p>
+        <div class="chart">
+          {% if percentuais %}
+            {% for key, value in percentuais.items %}
+              <div style="width: {{ value }}px;">{{ key }}</div>
+            {% endfor %}
+        {% endif %}
+       </div>
+   </div>
+   <div class="w3-third">
+        <p>Agendamentos programados:</p>
+          {% if agendamentos %}
+            {% for agendamento in agendamentos%}
+              <p>{{ agendamento }}</p>
+            {% endfor %}
+        {% endif %}
+    </div>
+
 </div>
+
+
 {% endblock %}

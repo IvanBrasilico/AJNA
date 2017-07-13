@@ -7,16 +7,16 @@ from ajna.settings import BASE_DIR
 import os
 
 n_bins = 32
-with open(os.path.join(BASE_DIR, 'busca', 'utils', "histogramsregressao.pkl"), "rb") as f:
+with open(os.path.join(BASE_DIR, 'busca', 'utils', "histograms.pkl"), "rb") as f:
     histograms = pickle.load(f)
     
-cont = 0
+'''cont = 0
 for linha in histograms:
     linha = linha[:32]
     histograms[cont]=linha
     cont += 1
-
-labels = pickle.load(open(os.path.join(BASE_DIR, 'busca', 'utils', "labelsregressao.pkl"), "rb"))
+'''
+labels = pickle.load(open(os.path.join(BASE_DIR, 'busca', 'utils', "labels.pkl"), "rb"))
 reg = linear_model.LinearRegression()
 reg.fit(histograms, labels)
 
