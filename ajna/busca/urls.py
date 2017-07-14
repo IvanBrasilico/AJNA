@@ -12,7 +12,7 @@ from . import views
 app_name = 'busca'
 
 urlpatterns = [
-    url(r'^$', views.IndexView.as_view(), name='index'),
+    url(r'^$', views.indexview, name='index'),
     # ex: /busca/5/
     url(r'^(?P<pk>[0-9]+)/$', views.FonteDetailView.as_view(), name='FonteDetailView'),
     url(r'^conteiner/(?P<pk>[0-9]+)/$', views.conteinerdetail, name='c'),

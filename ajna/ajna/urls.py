@@ -36,6 +36,7 @@ class myThread (threading.Thread):
       self.lastrun = 0
    def run(self):
        print ("Starting " + self.name)
+       trata_agendamentos()
        schedule.every(30).minutes.do(trata_agendamentos)
        while True:
            schedule.run_pending()

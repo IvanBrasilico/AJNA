@@ -1,5 +1,5 @@
 from django.db import models
-from datetime import datetime
+import datetime
 from .filefunctions import carregaarquivos
 # Create your models here.
 
@@ -26,6 +26,11 @@ class ConteinerEscaneado(models.Model):
         unique_together = ("numero", "pub_date")
     def __str__(self):
         return self.numero
+    def getTotal():
+        return ConteinerEscaneado.objects.count()
+    def getTotalporFonteImagem():
+        return ConteinerEscaneado.objects.values('fonte').annotate(fcount=models.Count('fonte'))
+
 
 class Agendamento(models.Model):
     fonte = models.ForeignKey(FonteImagem, on_delete=models.CASCADE)
@@ -39,9 +44,11 @@ class Agendamento(models.Model):
     def processamascara(self):
         return self.proximocarregamento.strftime(self.mascarafiltro)
     def agendamentos_pendentes():
-        return Agendamento.objects.all().filter(proximocarregamento__lt=datetime.now())
+        return Agendamento.objects.all().filter(proximocarregamento__lt=datetime.datetime.now())
+    def agendamentos_programados():
+        return Agendamento.objects.all().filter(proximocarregamento__gt=datetime.datetime.now())
     def __str__(self):
-        return self.fonte.nome+' '+self.proximocarregamento
+        return self.fonte.nome+' '+self.proximocarregamento.strftime("%Y%m%d %H%M")
 
 def trata_agendamentos():
        lista_agendamentos = Agendamento.agendamentos_pendentes()
@@ -52,7 +59,7 @@ def trata_agendamentos():
                fonte = ag.fonte
                caminho = ag.processamascara()
                mensagem = carregaarquivos(homedir, caminho, size, fonte)
-               with open('agendamento'+ag.fonte.nome+ag.proximocarregamento, 'w') as f:
+               with open('agendamento'+ag.fonte.nome+ag.proximocarregamento.strftime("%Y%m%d %H%M"), 'w') as f:
                    f.write(mensagem)
                    f.close()
                ag.proximocarregamento = ag.proximocarregamento + datetime.timedelta(days=ag.diaspararepetir)
