@@ -17,11 +17,15 @@ class ConteinerEscaneado(models.Model):
     arqimagem = models.CharField(max_length=150, blank=True)
     truckid = models.CharField(max_length=150, blank=True)
     codigoplano = models.BinaryField(max_length=1000, null=True)
+    login = models.CharField(max_length=50, blank=True)
+    alerta = models.CharField(max_length=2, blank=True)
     class Meta:
         indexes = [
             models.Index(fields=['numero']),
             models.Index(fields=['pub_date']),
             models.Index(fields=['truckid']),
+            models.Index(fields=['login']),
+            models.Index(fields=['alerta']),
         ]
         unique_together = ("numero", "pub_date")
     def __str__(self):
@@ -34,8 +38,7 @@ class ConteinerEscaneado(models.Model):
 
 class Agendamento(models.Model):
     fonte = models.ForeignKey(FonteImagem, on_delete=models.CASCADE)
-    mascarafiltro = models.CharField(
-            'Mascara no formato "%Y%m%d" mais qualquer literal', max_length=20) 
+    mascarafiltro = models.CharField('Mascara no formato "%Y%m%d" mais qualquer literal', max_length=20) #
     diaspararepetir = models.IntegerField()
     proximocarregamento = models.DateTimeField('Data do próximo agendamento')
     class Meta:
@@ -52,21 +55,23 @@ class Agendamento(models.Model):
         return self.fonte.nome+' '+self.proximocarregamento.strftime("%Y%m%d %H%M")
 
 def trata_agendamentos():
-    lista_agendamentos = Agendamento.agendamentos_pendentes()
-    if len(lista_agendamentos) > 0:
-        print("Tem agendamentos!")
-        from .views import homedir, size
-        for ag in lista_agendamentos:
-            fonte = ag.fonte
-            caminho = ag.processamascara()
-            mensagem = carregaarquivos(homedir, caminho, size, fonte)
-            with open('agendamento'+ag.fonte.nome+ag.proximocarregamento.strftime("%Y%m%d %H%M"), 'w') as f:
-                f.write(mensagem)
-                f.close()
-            ag.proximocarregamento = ag.proximocarregamento + datetime.timedelta(days=ag.diaspararepetir)
-            ag.save()
-    else:
-        print("Não tem agendamentos!")
+       lista_agendamentos = Agendamento.agendamentos_pendentes()
+       if len(lista_agendamentos) > 0:
+           print("Tem agendamentos!")
+           from .views import homedir, size
+           for ag in lista_agendamentos:
+               fonte = ag.fonte
+               caminho = ag.processamascara()
+               mensagem = carregaarquivos(homedir, caminho, size, fonte)
+               with open('agendamento'+ag.fonte.nome+ag.proximocarregamento.strftime("%Y%m%d %H%M"), 'w') as f:
+                   f.write(mensagem)
+                   f.close()
+               ag.proximocarregamento = ag.proximocarregamento + datetime.timedelta(days=ag.diaspararepetir)
+               ag.save()
+       else:
+           print("Não tem agendamentos!")
+           
+
     
 
 

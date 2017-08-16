@@ -28,13 +28,13 @@ from .utils import montalistabusca
 
 size = (256, 120)
 inputsize = int(size[0]*size[1])
-#model, encoder, decoder = modelfully1(inputsize)
+model, encoder, decoder = modelfully1(inputsize)
 global homedir 
 homedir = os.path.dirname(os.path.abspath(__file__))
 modeldir = os.path.join(homedir, 'plano', 'conteineresencoder.tflearn' )
-#model.load(modeldir)
-#global encoding_model
-#encoding_model = tflearn.DNN(encoder, session=model.session)
+model.load(modeldir)
+global encoding_model
+encoding_model = tflearn.DNN(encoder, session=model.session)
 print("Modelo carregado")   
 global order
 global imgsimilar
@@ -162,7 +162,7 @@ def buscasimilar(request,pk):
     imgsimilar = img
     return buscaimagem(request)
 
-def paginatorconteiner(request, ConteinerEscaneado_list, template, numero="", datainicial="", datafinal="", img=""):
+def paginatorconteiner(request, ConteinerEscaneado_list, template, numero="", datainicial="", datafinal="",login="", img="", alerta=""):
     paginator = Paginator(ConteinerEscaneado_list, 12) # Show 12 images per page
     page = request.GET.get('page')
     try:
@@ -173,12 +173,16 @@ def paginatorconteiner(request, ConteinerEscaneado_list, template, numero="", da
     except EmptyPage:
         # If page is out of range (e.g. 9999), deliver last page of results.
         conteineres = paginator.page(paginator.num_pages)
-    context = {'conteineres': conteineres, 'numero':numero, 'datainicial':datainicial, 'datafinal':datafinal}
+    context = {'conteineres': conteineres, 'numero':numero, 'datainicial':datainicial, 'datafinal':datafinal, 'login':login, 'alerta':alerta}
     return render(request, template, context )
 
 
-def filtraconteiner(request, numero="", datainicial="", datafinal=""): #Recebe uma imagem via form HTML e monta listaordenada dos contêineres escaneados
+def filtraconteiner(request, numero="", datainicial="", datafinal="", login ="", alerta=""): #Recebe uma imagem via form HTML e monta listaordenada dos contêineres escaneados
    ConteinerEscaneadol = ConteinerEscaneado.objects.all()
+   if not login == "":
+       ConteinerEscaneadol = ConteinerEscaneadol.filter(login__startswith=login)
+   if not alerta =="":
+       ConteinerEscaneadol = ConteinerEscaneadol.filter(alerta__startswith=alerta)
    if not numero  == "":
        ConteinerEscaneadol = ConteinerEscaneadol.filter(numero__startswith=numero)
    if not ((datainicial == "") or (datafinal == "")):
@@ -189,18 +193,22 @@ def buscaconteiner(request): #Recebe uma imagem via form HTML e monta listaorden
    numero = ""
    datainicial=""
    datafinal=""
+   login=""
+   alerta=""
    if request.POST:
        numero = request.POST['numero']
        datainicial=request.POST['datainicial']
        datafinal=request.POST['datafinal']
+       login = request.POST['login']
+       alerta = request.POST['alerta']
    else: ## Chamou a primeira vez,  inicialização!
        global order
        order = None #Reiniciafiltragem
        ##Pensar em inicializar datainicial em alguns meses ou um ano atrás para economizar recursor
        #
        #
-   ConteinerEscaneadol = filtraconteiner(request, numero, datainicial, datafinal)
-   return paginatorconteiner(request, list(ConteinerEscaneadol.order_by('-pub_date', 'numero')), 'busca/buscaconteiner.html', numero, datainicial, datafinal)
+   ConteinerEscaneadol = filtraconteiner(request, numero, datainicial, datafinal, login, alerta)
+   return paginatorconteiner(request, list(ConteinerEscaneadol.order_by('-pub_date', 'numero')), 'busca/buscaconteiner.html', numero, datainicial, datafinal)#, login)
 
 
 def buscaimagem(request): #Recebe uma imagem via form HTML e monta listaordenada dos contêineres escaneados
@@ -209,15 +217,19 @@ def buscaimagem(request): #Recebe uma imagem via form HTML e monta listaordenada
     numero = ""
     datainicial=""
     datafinal=""
+    login=""
+    alerta=""
     if request.POST:
         try:
             numero = request.POST['numero']
         except:
             numero = ""
+        login = request.POST['login']
+        alerta = request.POST['alerta']
         if not numero  == "":
             datainicial=request.POST['datainicial']
             datafinal=request.POST['datafinal']
-    ConteinerEscaneadol = filtraconteiner(request, numero, datainicial, datafinal)
+    ConteinerEscaneadol = filtraconteiner(request, numero, datainicial, datafinal, login, alerta)
     if request.POST:
         form = ImageUploadForm(request.POST, request.FILES)
         if form.is_valid():
@@ -245,13 +257,14 @@ def buscaimagem(request): #Recebe uma imagem via form HTML e monta listaordenada
         ConteinerEscaneado_list = list(ConteinerEscaneadol.order_by('-pub_date', 'numero'))
         #print('not ordered')
         #print(ConteinerEscaneado_list[0])
-    return paginatorconteiner(request, ConteinerEscaneado_list, 'busca/buscaconteiner.html', numero, datainicial, datafinal)
+    return paginatorconteiner(request, ConteinerEscaneado_list, 'busca/buscaconteiner.html', numero, datainicial, datafinal, login, alerta)
 
 
 from django.db import transaction
 @transaction.atomic
 def indexar(request):
-    conteineressemcodigo = ConteinerEscaneado.objects.filter(codigoplano__isnull="True")
+    #conteineressemcodigo = ConteinerEscaneado.objects.filter(codigoplano__isnull="True")
+    conteineressemcodigo = ConteinerEscaneado.objects.all()
     for c in conteineressemcodigo:
         img = Image.open(os.path.join(staticdir, c.arqimagem))
         X = np.asarray(img).reshape(inputsize)

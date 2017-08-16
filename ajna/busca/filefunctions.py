@@ -77,11 +77,12 @@ def recortaesalva(ofile, size, odest):
             yteto = 5
         imcortada = im[yteto:ychao, xesquerda:xdireita]
         filename = os.path.basename(ofile)
-        destdir = os.path.dirname(ofile)
+        destdir = os.path.dirname(odest)
         destfile = destdir+'tmp_'+filename
-        print("**"+destfile)
+        print("*OFILE"+odest)
+        print("*DEST*"+destfile)
         misc.imsave(destfile, imcortada)
-        im = Image.load(destfile)
+        im = Image.open(destfile)
         imnova = im.resize(size)
         imnova.save(odest, quality=100)
         os.remove(destfile)
@@ -92,6 +93,7 @@ def carregaarquivos(homedir, caminho, size, fonteimagem):
     pathdest = os.path.join(homedir, "static/busca/")
     print(path)
     numero = None
+    alerta = ""
     mensagem = "Imagens carregadas!"
     from .models import ConteinerEscaneado
 
@@ -111,6 +113,15 @@ def carregaarquivos(homedir, caminho, size, fonteimagem):
                 for tag in root.iter('TruckId'):
                     truckid=tag.text
                     print(truckid)
+                for tag in root.iter('Login'):
+                    login=tag.text
+                    print(login)
+                for tag in root.iter('Custom2'):
+                    custom2=tag.text
+                    if custom2 is not "":
+                        print("Alerta")
+                        print(custom2)
+                        alerta = custom2
                 for tag in root.iter('Date'):
                     data=tag.text
                     print(data)
@@ -141,6 +152,8 @@ def carregaarquivos(homedir, caminho, size, fonteimagem):
                         c.fonte = fonteimagem
                         c.pub_date = data
                         c.truckid = truckid
+                        c.login = login
+                        c.alerta = alerta
                         try:
                             c.save()
                             mensagem = mensagem + numero + " incluído"
