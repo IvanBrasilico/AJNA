@@ -100,16 +100,16 @@ def listavazios(request): # Trata UPLOAD de CSV
             conteineres_list = ConteinerEscaneado.objects.all(
                 ).filter(pub_date__range=(datainicial, datafinal+' 23:59'),
                          numero=row[0])
-            for conteiner in conteineres_list:
-                teste = checavazio.vaziooucheio(os.path.join(staticdir,
-                                                      conteiner.arqimagem))
-                if teste == [0]:
-                    listavazios.append(conteiner)
-                else:
-                    listanaovazios.append(conteiner)
-            else:
-                if row[0] ==0:
+            if len(conteineres_list) == 0:
                     listanaoencontrados.append(row[0])
+            else: 
+                for conteiner in conteineres_list:
+                    teste = checavazio.vaziooucheio(os.path.join(staticdir,
+                                                      conteiner.arqimagem))
+                    if teste == [0]:
+                        listavazios.append(conteiner)
+                    else:
+                        listanaovazios.append(conteiner)
         total = len(listavazios)+len(listanaovazios)+len(listanaoencontrados)
         percvazios =  int((len(listavazios) / total) * 600) #200 = px
         percnvazios =  int((len(listanaovazios) / total) * 600) #200 = px
