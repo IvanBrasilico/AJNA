@@ -11,6 +11,7 @@ import pandas as pd
 import locale
 locale.setlocale(locale.LC_ALL, '')
 import collections
+import zipfile as zipf
 
 from PIL import Image
 import numpy as np
@@ -80,6 +81,9 @@ def frmcomparapesos(request): # Formulário para fazer UPLOAD de CSV a buscar
 def frmlistavazios(request): # Formulário para fazer UPLOAD de CSV a buscar
     return render(request, 'busca/frmlistavazios.html' )
 
+def frmcompactandoarquivos(request):
+    return render(request, 'busca/frmcompactandoarquivos.html')
+
 def listavazios(request): # Trata UPLOAD de CSV
     mensagem = ""
     if request.POST and request.FILES:
@@ -104,7 +108,8 @@ def listavazios(request): # Trata UPLOAD de CSV
                 else:
                     listanaovazios.append(conteiner)
             else:
-                listanaoencontrados.append(row[0])
+                if row[0] ==0:
+                    listanaoencontrados.append(row[0])
         total = len(listavazios)+len(listanaovazios)+len(listanaoencontrados)
         percvazios =  int((len(listavazios) / total) * 600) #200 = px
         percnvazios =  int((len(listanaovazios) / total) * 600) #200 = px
@@ -135,7 +140,8 @@ def comparapesos(request): # Trata UPLOAD de CSV
         pesoestimado = 0
         for num in df['Contêiner']:
             try:
-                conteiner = ConteinerEscaneado.objects.get(numero=num)
+                conteiner = ConteinerEscaneado.objects.get(numero=num).filter(pub_date__range=(datainicial, datafinal+' 23:59'),
+                         numero=row[0])
                 df['Contêiner'][cont] = "<a href=\"/busca/conteiner/"+str(conteiner.id)+"/\">"+df['Contêiner'][cont]+"</a>"
                 pesoestimado = predizpeso.pesoimagem(os.path.join(homedir, "static/busca/", conteiner.arqimagem))
                 print('Peso estimado:' + str(pesoestimado))
@@ -315,3 +321,22 @@ def indexarold(request):
     cur.execute("END")
     #transaction.commit()
     return render_to_response('busca/index.html', {'mensagem': 'Indexação realizada!', 'FonteImagem_list': FonteImagem.objects.all()} )
+
+def compactandoarquivos(request):
+    try:
+        if request.POST:  
+            with zipf.ZipFile('bdEimg.zip','w', zipf.ZIP_DEFLATED) as z:
+                for arq in arqs:
+                    if(os.path.isfile(arq)): # se for ficheiro
+                        z.write(arq)
+                    else: # se for diretorio
+                        for root, dirs, files in os.walk(arq):
+                            for f in files:
+                                z.write(os.path.join(root, f))
+            return(compactandoarquivos(['busca/static/busca', 'db.sqlite3']))
+        else:
+            mensagem = "Arquivos de peso declarado e balanças não enviados!"
+    except: None
+    return render('busca/index.html', {'mensagem': 'Arquivos compactados!'})
+
+ 
