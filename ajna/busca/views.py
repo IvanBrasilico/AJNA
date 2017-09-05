@@ -28,7 +28,7 @@ from .utils import montalistabusca
 
 size = (256, 120)
 inputsize = int(size[0]*size[1])
-model, encoder, decoder = modelfully1(inputsize)
+model, encoder, decode = modelfully1(inputsize)
 global homedir 
 homedir = os.path.dirname(os.path.abspath(__file__))
 modeldir = os.path.join(homedir, 'plano', 'conteineresencoder.tflearn' )
@@ -84,6 +84,8 @@ def listavazios(request): # Trata UPLOAD de CSV
     mensagem = ""
     if request.POST and request.FILES:
         csvfile = request.FILES['csv']
+        datainicial=request.POST['datainicial']
+        datafinal=request.POST['datafinal']
         csvf = StringIO(csvfile.read().decode())
         reader = csv.reader(csvf)
         listavazios = []
@@ -91,14 +93,16 @@ def listavazios(request): # Trata UPLOAD de CSV
         listanaoencontrados = []
         for row in reader:
             print(row)
-            listc = ConteinerEscaneado.objects.all().filter(numero=row[0])
-            if len(listc) == 1:
-                c = listc[0]
-                teste = checavazio.vaziooucheio(os.path.join(staticdir, c.arqimagem))
+            conteineres_list = ConteinerEscaneado.objects.all(
+                ).filter(pub_date__range=(datainicial, datafinal+' 23:59'),
+                         numero=row[0])
+            for conteiner in conteineres_list:
+                teste = checavazio.vaziooucheio(os.path.join(staticdir,
+                                                      conteiner.arqimagem))
                 if teste == [0]:
-                    listavazios.append(c)
+                    listavazios.append(conteiner)
                 else:
-                    listanaovazios.append(c)
+                    listanaovazios.append(conteiner)
             else:
                 listanaoencontrados.append(row[0])
         total = len(listavazios)+len(listanaovazios)+len(listanaoencontrados)
@@ -114,7 +118,6 @@ def listavazios(request): # Trata UPLOAD de CSV
                                                           'percnvazios':percnvazios,
                                                           'percnencontrados':percnencontrados})
 
-import sys
 
 def comparapesos(request): # Trata UPLOAD de CSV
     mensagem = ""

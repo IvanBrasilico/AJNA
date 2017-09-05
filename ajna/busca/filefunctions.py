@@ -40,7 +40,7 @@ def resize(file, size):
     im.save(file, "JPEG")
 
 
-def recortaesalva(ofile, size, odest):
+def recortaesalva(ofile, size, odest, metade = False):
         print("**"+ofile)
         im = misc.imread(ofile, True)
         yfinal, xfinal = im.shape
@@ -53,7 +53,7 @@ def recortaesalva(ofile, size, odest):
                 yteto = s
                 break
         #Depois de achado o teto, percorrer as laterais para achar os lados
-        xesquerda = 0
+        xesquerda = 1
         for r in range(0, xmeio):
             if (im[yteto+5, r] < 230):
                 xesquerda = r
@@ -75,18 +75,30 @@ def recortaesalva(ofile, size, odest):
             xesquerda = 5
         if (yteto == ymeio):
             yteto = 5
-        imcortada = im[yteto:ychao, xesquerda:xdireita]
         filename = os.path.basename(ofile)
         destdir = os.path.dirname(odest)
         destfile = destdir+'tmp_'+filename
         print("*OFILE"+odest)
         print("*DEST*"+destfile)
+        if metade:
+            imcortada = im[yteto:ychao, xesquerda:xmeio] # 1
+            cortefinal_e_resize(destfile, imcortada, odest)
+            imcortada = im[yteto:ychao, xmeio:xdireita] # 2
+            cortefinal_e_resize(destfile, imcortada, odest)
+        else:
+            imcortada = im[yteto:ychao, xesquerda:xdireita]
+            cortefinal_e_resize(destfile, imcortada, odest)
+            
+            
+def cortefinal_e_resize(destfile, imcortada, odest, size):
         misc.imsave(destfile, imcortada)
         im = Image.open(destfile)
         imnova = im.resize(size)
         imnova.save(odest, quality=100)
         os.remove(destfile)
         return imnova
+
+
 
 def carregaarquivos(homedir, caminho, size, fonteimagem):
     path = os.path.join(fonteimagem.caminho, caminho)
@@ -104,18 +116,13 @@ def carregaarquivos(homedir, caminho, size, fonteimagem):
                 print(dirpath)
                 tree = ET.parse(os.path.join(dirpath, f))
                 root = tree.getroot()
+                numeros = []
                 for tag in root.iter('ContainerId'):
-                    lnumero = tag.text
-                    if lnumero is not None:
-                        print("Numero")
-                        print(lnumero)
-                        numero = lnumero
+                    numeros.append(tag.text)
                 for tag in root.iter('TruckId'):
                     truckid=tag.text
-                    print(truckid)
                 for tag in root.iter('Login'):
                     login=tag.text
-                    print(login)
                 for tag in root.iter('Custom2'):
                     custom2=tag.text
                     if custom2 is not "":
@@ -125,7 +132,7 @@ def carregaarquivos(homedir, caminho, size, fonteimagem):
                 for tag in root.iter('Date'):
                     data=tag.text
                     print(data)
-                if numero is not None:
+                for numero in numeros:
                     print('Processando...')
                     ano = data[:4]
                     mes = data[5:7]
@@ -145,6 +152,7 @@ def carregaarquivos(homedir, caminho, size, fonteimagem):
                         print(name)
                         copyfile(file, os.path.join(destcompleto, name))
                         recortaesalva(file, size, os.path.join(destcompleto, numero+'.jpg'))
+                        
                         c = ConteinerEscaneado()
                         c.numero = numero
                         c.arqimagem = destparcial+'/'+numero+'.jpg'

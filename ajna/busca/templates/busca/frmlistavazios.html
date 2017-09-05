@@ -8,6 +8,9 @@
 {% csrf_token %}
 <h3><i>Informe um arquivo CSV com os números de contêineres da lista de vazios</i></h3>
 <input type="file" name="csv"><br>
+Data inicial: <input type="text" name="datainicial" value="{{ datainicial }}">
+Data final: <input type="text" name="datafinal" value="{{ datafinal }}">
+    x<br></br>
 <input type="submit" value="Submeter arquivo">
 </form>
 </div>
