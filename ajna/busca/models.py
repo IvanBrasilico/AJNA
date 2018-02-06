@@ -17,6 +17,7 @@ class ConteinerEscaneado(models.Model):
     arqimagem = models.CharField(max_length=150, blank=True)
     truckid = models.CharField(max_length=150, blank=True)
     codigoplano = models.BinaryField(max_length=1000, null=True)
+    exportado = models.BooleanField()
     class Meta:
         indexes = [
             models.Index(fields=['numero']),
@@ -66,7 +67,13 @@ def trata_agendamentos():
                ag.save()
        else:
            print("Não tem agendamentos!")
-           
+
+
+def exporta_arquivos():
+    nao_exportados = ConteinerEscaneado.objects.all().filter(exportado is False)
+    dict_export = {}
+    for containerescaneado in nao_exportados:
+        pass
 
     
 
