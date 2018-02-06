@@ -137,6 +137,7 @@ def carregaarquivos(homedir, caminho, size, fonteimagem):
                     ano = data[:4]
                     mes = data[5:7]
                     dia = data[8:10]
+                    numero = numero.replace('?', 'X')
                     destparcial = os.path.join(ano, mes, dia, numero)
                     destcompleto = os.path.join(pathdest, destparcial)
                     print(destcompleto)

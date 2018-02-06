@@ -45,7 +45,7 @@ ajna/busca/__pycache__/
 
 ajna/busca/plano/
 
-ajna/busca/static/busca/2017/
+ajna/busca/static/busca/
 
 ajna/busca/static/busca/2018/
 
@@ -90,3 +90,10 @@ ajna/agendamentoMARIMEX20170901 2359
 ajna/agendamentoMARIMEX20170902 2359
 
 ajna/agendamentoMARIMEX20170903 2359
+
+*.zip
+
+*.idea
+
+__pycache__
+ajna/busca/busca/static/busca/2017/
