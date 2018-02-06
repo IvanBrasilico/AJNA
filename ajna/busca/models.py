@@ -17,11 +17,15 @@ class ConteinerEscaneado(models.Model):
     arqimagem = models.CharField(max_length=150, blank=True)
     truckid = models.CharField(max_length=150, blank=True)
     codigoplano = models.BinaryField(max_length=1000, null=True)
+    login = models.CharField(max_length=50, blank=True)
+    alerta = models.CharField(max_length=2, blank=True)
     class Meta:
         indexes = [
             models.Index(fields=['numero']),
             models.Index(fields=['pub_date']),
             models.Index(fields=['truckid']),
+            models.Index(fields=['login']),
+            models.Index(fields=['alerta']),
         ]
         unique_together = ("numero", "pub_date")
     def __str__(self):

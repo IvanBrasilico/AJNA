@@ -11,6 +11,7 @@ import pandas as pd
 import locale
 locale.setlocale(locale.LC_ALL, '')
 import collections
+import zipfile as zipf
 
 from PIL import Image
 import numpy as np
@@ -28,7 +29,7 @@ from .utils import montalistabusca
 
 size = (256, 120)
 inputsize = int(size[0]*size[1])
-model, encoder, decoder = modelfully1(inputsize)
+model, encoder, decode = modelfully1(inputsize)
 global homedir 
 homedir = os.path.dirname(os.path.abspath(__file__))
 modeldir = os.path.join(homedir, 'plano', 'conteineresencoder.tflearn' )
@@ -80,10 +81,15 @@ def frmcomparapesos(request): # Formulário para fazer UPLOAD de CSV a buscar
 def frmlistavazios(request): # Formulário para fazer UPLOAD de CSV a buscar
     return render(request, 'busca/frmlistavazios.html' )
 
+def frmcompactandoarquivos(request):
+    return render(request, 'busca/frmcompactandoarquivos.html')
+
 def listavazios(request): # Trata UPLOAD de CSV
     mensagem = ""
     if request.POST and request.FILES:
         csvfile = request.FILES['csv']
+        datainicial=request.POST['datainicial']
+        datafinal=request.POST['datafinal']
         csvf = StringIO(csvfile.read().decode())
         reader = csv.reader(csvf)
         listavazios = []
@@ -91,16 +97,19 @@ def listavazios(request): # Trata UPLOAD de CSV
         listanaoencontrados = []
         for row in reader:
             print(row)
-            listc = ConteinerEscaneado.objects.all().filter(numero=row[0])
-            if len(listc) == 1:
-                c = listc[0]
-                teste = checavazio.vaziooucheio(os.path.join(staticdir, c.arqimagem))
-                if teste == [0]:
-                    listavazios.append(c)
-                else:
-                    listanaovazios.append(c)
-            else:
-                listanaoencontrados.append(row[0])
+            conteineres_list = ConteinerEscaneado.objects.all(
+                ).filter(pub_date__range=(datainicial, datafinal+' 23:59'),
+                         numero=row[0])
+            if len(conteineres_list) == 0:
+                    listanaoencontrados.append(row[0])
+            else: 
+                for conteiner in conteineres_list:
+                    teste = checavazio.vaziooucheio(os.path.join(staticdir,
+                                                      conteiner.arqimagem))
+                    if teste == [0]:
+                        listavazios.append(conteiner)
+                    else:
+                        listanaovazios.append(conteiner)
         total = len(listavazios)+len(listanaovazios)+len(listanaoencontrados)
         percvazios =  int((len(listavazios) / total) * 600) #200 = px
         percnvazios =  int((len(listanaovazios) / total) * 600) #200 = px
@@ -114,7 +123,6 @@ def listavazios(request): # Trata UPLOAD de CSV
                                                           'percnvazios':percnvazios,
                                                           'percnencontrados':percnencontrados})
 
-import sys
 
 def comparapesos(request): # Trata UPLOAD de CSV
     mensagem = ""
@@ -132,7 +140,8 @@ def comparapesos(request): # Trata UPLOAD de CSV
         pesoestimado = 0
         for num in df['Contêiner']:
             try:
-                conteiner = ConteinerEscaneado.objects.get(numero=num)
+                conteiner = ConteinerEscaneado.objects.get(numero=num).filter(pub_date__range=(datainicial, datafinal+' 23:59'),
+                         numero=row[0])
                 df['Contêiner'][cont] = "<a href=\"/busca/conteiner/"+str(conteiner.id)+"/\">"+df['Contêiner'][cont]+"</a>"
                 pesoestimado = predizpeso.pesoimagem(os.path.join(homedir, "static/busca/", conteiner.arqimagem))
                 print('Peso estimado:' + str(pesoestimado))
@@ -162,7 +171,7 @@ def buscasimilar(request,pk):
     imgsimilar = img
     return buscaimagem(request)
 
-def paginatorconteiner(request, ConteinerEscaneado_list, template, numero="", datainicial="", datafinal="", img=""):
+def paginatorconteiner(request, ConteinerEscaneado_list, template, numero="", datainicial="", datafinal="",login="", img="", alerta=""):
     paginator = Paginator(ConteinerEscaneado_list, 12) # Show 12 images per page
     page = request.GET.get('page')
     try:
@@ -173,12 +182,16 @@ def paginatorconteiner(request, ConteinerEscaneado_list, template, numero="", da
     except EmptyPage:
         # If page is out of range (e.g. 9999), deliver last page of results.
         conteineres = paginator.page(paginator.num_pages)
-    context = {'conteineres': conteineres, 'numero':numero, 'datainicial':datainicial, 'datafinal':datafinal}
+    context = {'conteineres': conteineres, 'numero':numero, 'datainicial':datainicial, 'datafinal':datafinal, 'login':login, 'alerta':alerta}
     return render(request, template, context )
 
 
-def filtraconteiner(request, numero="", datainicial="", datafinal=""): #Recebe uma imagem via form HTML e monta listaordenada dos contêineres escaneados
+def filtraconteiner(request, numero="", datainicial="", datafinal="", login ="", alerta=""): #Recebe uma imagem via form HTML e monta listaordenada dos contêineres escaneados
    ConteinerEscaneadol = ConteinerEscaneado.objects.all()
+   if not login == "":
+       ConteinerEscaneadol = ConteinerEscaneadol.filter(login__startswith=login)
+   if not alerta =="":
+       ConteinerEscaneadol = ConteinerEscaneadol.filter(alerta__startswith=alerta)
    if not numero  == "":
        ConteinerEscaneadol = ConteinerEscaneadol.filter(numero__startswith=numero)
    if not ((datainicial == "") or (datafinal == "")):
@@ -189,18 +202,22 @@ def buscaconteiner(request): #Recebe uma imagem via form HTML e monta listaorden
    numero = ""
    datainicial=""
    datafinal=""
+   login=""
+   alerta=""
    if request.POST:
        numero = request.POST['numero']
        datainicial=request.POST['datainicial']
        datafinal=request.POST['datafinal']
+       login = request.POST['login']
+       alerta = request.POST['alerta']
    else: ## Chamou a primeira vez,  inicialização!
        global order
        order = None #Reiniciafiltragem
        ##Pensar em inicializar datainicial em alguns meses ou um ano atrás para economizar recursor
        #
        #
-   ConteinerEscaneadol = filtraconteiner(request, numero, datainicial, datafinal)
-   return paginatorconteiner(request, list(ConteinerEscaneadol.order_by('-pub_date', 'numero')), 'busca/buscaconteiner.html', numero, datainicial, datafinal)
+   ConteinerEscaneadol = filtraconteiner(request, numero, datainicial, datafinal, login, alerta)
+   return paginatorconteiner(request, list(ConteinerEscaneadol.order_by('-pub_date', 'numero')), 'busca/buscaconteiner.html', numero, datainicial, datafinal)#, login)
 
 
 def buscaimagem(request): #Recebe uma imagem via form HTML e monta listaordenada dos contêineres escaneados
@@ -209,15 +226,19 @@ def buscaimagem(request): #Recebe uma imagem via form HTML e monta listaordenada
     numero = ""
     datainicial=""
     datafinal=""
+    login=""
+    alerta=""
     if request.POST:
         try:
             numero = request.POST['numero']
         except:
             numero = ""
+        login = request.POST['login']
+        alerta = request.POST['alerta']
         if not numero  == "":
             datainicial=request.POST['datainicial']
             datafinal=request.POST['datafinal']
-    ConteinerEscaneadol = filtraconteiner(request, numero, datainicial, datafinal)
+    ConteinerEscaneadol = filtraconteiner(request, numero, datainicial, datafinal, login, alerta)
     if request.POST:
         form = ImageUploadForm(request.POST, request.FILES)
         if form.is_valid():
@@ -245,7 +266,7 @@ def buscaimagem(request): #Recebe uma imagem via form HTML e monta listaordenada
         ConteinerEscaneado_list = list(ConteinerEscaneadol.order_by('-pub_date', 'numero'))
         #print('not ordered')
         #print(ConteinerEscaneado_list[0])
-    return paginatorconteiner(request, ConteinerEscaneado_list, 'busca/buscaconteiner.html', numero, datainicial, datafinal)
+    return paginatorconteiner(request, ConteinerEscaneado_list, 'busca/buscaconteiner.html', numero, datainicial, datafinal, login, alerta)
 
 
 from django.db import transaction
@@ -300,3 +321,22 @@ def indexarold(request):
     cur.execute("END")
     #transaction.commit()
     return render_to_response('busca/index.html', {'mensagem': 'Indexação realizada!', 'FonteImagem_list': FonteImagem.objects.all()} )
+
+def compactandoarquivos(request):
+    try:
+        if request.POST:  
+            with zipf.ZipFile('bdEimg.zip','w', zipf.ZIP_DEFLATED) as z:
+                for arq in arqs:
+                    if(os.path.isfile(arq)): # se for ficheiro
+                        z.write(arq)
+                    else: # se for diretorio
+                        for root, dirs, files in os.walk(arq):
+                            for f in files:
+                                z.write(os.path.join(root, f))
+            return(compactandoarquivos(['busca/static/busca', 'db.sqlite3']))
+        else:
+            mensagem = "Arquivos de peso declarado e balanças não enviados!"
+    except: None
+    return render('busca/index.html', {'mensagem': 'Arquivos compactados!'})
+
+ 
