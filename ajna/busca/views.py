@@ -12,6 +12,7 @@ import locale
 locale.setlocale(locale.LC_ALL, '')
 import collections
 import zipfile as zipf
+import shutil
 
 from PIL import Image
 import numpy as np
@@ -20,6 +21,7 @@ from datetime import datetime
 import pickle
 import os
 import tflearn
+import sqlite3
 
 ### Inicialização/configuração - depois COLOCAR EM ARQUIVO ESPECÍFICO
 from .modelfully import modelfully1
@@ -81,8 +83,11 @@ def frmcomparapesos(request): # Formulário para fazer UPLOAD de CSV a buscar
 def frmlistavazios(request): # Formulário para fazer UPLOAD de CSV a buscar
     return render(request, 'busca/frmlistavazios.html' )
 
-def frmcompactandoarquivos(request):
+def frmcompactandoarquivos(request): # Formulário para COMPACTAR arquivos
     return render(request, 'busca/frmcompactandoarquivos.html')
+
+def frmdescompactandoarquivos(request):
+    return render(request, 'busca/frmdescompactandoarquivos.html')
 
 def listavazios(request): # Trata UPLOAD de CSV
     mensagem = ""
@@ -131,6 +136,8 @@ def comparapesos(request): # Trata UPLOAD de CSV
         csva = StringIO(csvade.read().decode())
         dfa = pd.read_csv(csva, names = ['Contêiner', 'B - Peso verificado em balança'])
         csvcarga = request.FILES['pesosCarga']
+        datainicial=request.POST['datainicial']
+        datafinal=request.POST['datafinal']
         csvc = StringIO(csvcarga.read().decode())
         dfc = pd.read_csv(csvc, names = ['Contêiner', 'A - Peso declarado Sistema Carga'])
         df = pd.merge(dfc, dfa, how='outer')
@@ -141,7 +148,7 @@ def comparapesos(request): # Trata UPLOAD de CSV
         for num in df['Contêiner']:
             try:
                 conteiner = ConteinerEscaneado.objects.get(numero=num).filter(pub_date__range=(datainicial, datafinal+' 23:59'),
-                         numero=row[0])
+                         numero=num[0])
                 df['Contêiner'][cont] = "<a href=\"/busca/conteiner/"+str(conteiner.id)+"/\">"+df['Contêiner'][cont]+"</a>"
                 pesoestimado = predizpeso.pesoimagem(os.path.join(homedir, "static/busca/", conteiner.arqimagem))
                 print('Peso estimado:' + str(pesoestimado))
@@ -233,11 +240,11 @@ def buscaimagem(request): #Recebe uma imagem via form HTML e monta listaordenada
             numero = request.POST['numero']
         except:
             numero = ""
-        login = request.POST['login']
-        alerta = request.POST['alerta']
         if not numero  == "":
             datainicial=request.POST['datainicial']
             datafinal=request.POST['datafinal']
+            login = request.POST['login']
+            alerta = request.POST['alerta']
     ConteinerEscaneadol = filtraconteiner(request, numero, datainicial, datafinal, login, alerta)
     if request.POST:
         form = ImageUploadForm(request.POST, request.FILES)
@@ -323,20 +330,68 @@ def indexarold(request):
     return render_to_response('busca/index.html', {'mensagem': 'Indexação realizada!', 'FonteImagem_list': FonteImagem.objects.all()} )
 
 def compactandoarquivos(request):
-    try:
-        if request.POST:  
-            with zipf.ZipFile('bdEimg.zip','w', zipf.ZIP_DEFLATED) as z:
-                for arq in arqs:
-                    if(os.path.isfile(arq)): # se for ficheiro
-                        z.write(arq)
-                    else: # se for diretorio
-                        for root, dirs, files in os.walk(arq):
-                            for f in files:
-                                z.write(os.path.join(root, f))
-            return(compactandoarquivos(['busca/static/busca', 'db.sqlite3']))
-        else:
-            mensagem = "Arquivos de peso declarado e balanças não enviados!"
-    except: None
-    return render('busca/index.html', {'mensagem': 'Arquivos compactados!'})
+    mensagem = ""
+    if request.POST:
+        bd = 'db_dump.sqlite3'
+        imagens = 'busca\\static\\busca\\2017'
+        with zipf.ZipFile('BancoDadoseImag.zip', 'w', zipf.ZIP_DEFLATED) as z:
+            for folder, subfolders, files in os.walk(imagens):
+                for file in files:
+                    z.write(os.path.join(folder, file),os.path.relpath(os.path.join(folder,file),'D:\\Users\\47020753817\\Downloads\\WinPython-64bit-3.5.3.1Qt5\\AJNA\\ajna\\busca\\static\\busca'),compress_type = zipf.ZIP_DEFLATED) 
+        z.close()
+        print("Imagens compactadas!")
+        dumpBD()
+        with zipf.ZipFile('BancoDadoseImag.zip', 'a', zipf.ZIP_DEFLATED) as z:
+            z.write(bd)
+        z.close()      
+        print("Banco compactado!")          
+    else:
+        mensagem = "Arquivos não enviados!"
+    return render_to_response('busca/frmcompactandoarquivos.html', {'mensagem': mensagem},
+                              RequestContext(request))
 
- 
+def dumpBD(): #realiza o backup do banco de dados
+    conn = sqlite3.connect('db.sqlite3')
+    with io.open('db_dump.sqlite3', 'w') as f:
+            for linha in conn.iterdump():
+                f.write('%s\n' % linha)
+    print('Backup realizado com sucesso.')
+    print('Salvo como db_dump.sqlite3')
+    conn.close()
+    
+def descompactaarquivos(request):
+    mensagem = ""
+    if request.POST:
+        with zipf.ZipFile('BancoDadoseImag.zip', 'r',zipf.ZIP_DEFLATED) as z:
+            z.extractall()
+        z.close()
+        recDump()
+        # moveArquivos()
+    else:
+        mensagem = "Arquivos não enviados!"
+    return render_to_response('busca/frmdescompactandoarquivos.html', {'mensagem': mensagem},
+                              RequestContext(request))
+def moveArquivos():
+    src = 'D:\\'
+    dst = 'D:\\'
+
+    print(os.listdir(src))
+    print(os.listdir(dst))
+    for file in os.listdir(src):
+        if file not in os.listdir(dst):
+            print(file)  # testing
+            src_file = os.path.join(src, file)
+            dst_file = os.path.join(dst, file)
+            shutil.move(src_file, dst_file)
+    else:
+        pass
+
+def recDump():
+    conn = sqlite3.connect('db.sqlite3')
+    cursor = conn.cursor()
+
+    f = io.open('db_dump.sqlite3', 'r')
+    sqlite = f.read()
+    cursor.executescript(sqlite)
+    print('Dump realizado')
+    conn.close()
