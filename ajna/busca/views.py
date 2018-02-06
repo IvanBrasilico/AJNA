@@ -251,7 +251,8 @@ def buscaimagem(request): #Recebe uma imagem via form HTML e monta listaordenada
 from django.db import transaction
 @transaction.atomic
 def indexar(request):
-    conteineressemcodigo = ConteinerEscaneado.objects.filter(codigoplano__isnull="True")
+    #conteineressemcodigo = ConteinerEscaneado.objects.filter(codigoplano__isnull="True")
+    conteineressemcodigo = ConteinerEscaneado.objects.all()
     for c in conteineressemcodigo:
         img = Image.open(os.path.join(staticdir, c.arqimagem))
         X = np.asarray(img).reshape(inputsize)
