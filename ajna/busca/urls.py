@@ -23,7 +23,6 @@ urlpatterns = [
     url(r'^frmlistavazios/$', views.frmlistavazios, name='frmlistavazios'),
     url(r'^frmcomparapesos/$', views.frmcomparapesos, name='frmcomparapesos'),
     url(r'^frmcompactandoarquivos/$', views.frmcompactandoarquivos, name='frmcompactandoarquivos'),
-    url(r'^frmdescompactandoarquivos/$', views.frmdescompactandoarquivos, name='frmdescompactandoarquivos'),
     url(r'^listavazios/$', views.listavazios, name='listavazios'),
     url(r'^comparapesos/$', views.comparapesos, name='comparapesos'),
     url(r'^compactandoarquivos/$', views.compactandoarquivos, name='compactandoarquivos'),

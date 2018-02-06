@@ -40,7 +40,7 @@ def resize(file, size):
     im.save(file, "JPEG")
 
 
-def recortaesalva(ofile, size, odest, metade = False):
+def recortaesalva(ofile, size, odest):
         print("**"+ofile)
         im = misc.imread(ofile, True)
         yfinal, xfinal = im.shape
@@ -53,7 +53,7 @@ def recortaesalva(ofile, size, odest, metade = False):
                 yteto = s
                 break
         #Depois de achado o teto, percorrer as laterais para achar os lados
-        xesquerda = 1
+        xesquerda = 0
         for r in range(0, xmeio):
             if (im[yteto+5, r] < 230):
                 xesquerda = r
@@ -75,22 +75,12 @@ def recortaesalva(ofile, size, odest, metade = False):
             xesquerda = 5
         if (yteto == ymeio):
             yteto = 5
+        imcortada = im[yteto:ychao, xesquerda:xdireita]
         filename = os.path.basename(ofile)
         destdir = os.path.dirname(odest)
         destfile = destdir+'tmp_'+filename
         print("*OFILE"+odest)
         print("*DEST*"+destfile)
-        if metade:
-            imcortada = im[yteto:ychao, xesquerda:xmeio] # 1
-            cortefinal_e_resize(destfile, imcortada, odest)
-            imcortada = im[yteto:ychao, xmeio:xdireita] # 2
-            cortefinal_e_resize(destfile, imcortada, odest)
-        else:
-            imcortada = im[yteto:ychao, xesquerda:xdireita]
-            cortefinal_e_resize(destfile, imcortada, odest)
-            
-            
-def cortefinal_e_resize(destfile, imcortada, odest, size):
         misc.imsave(destfile, imcortada)
         im = Image.open(destfile)
         imnova = im.resize(size)
@@ -98,14 +88,11 @@ def cortefinal_e_resize(destfile, imcortada, odest, size):
         os.remove(destfile)
         return imnova
 
-
-
 def carregaarquivos(homedir, caminho, size, fonteimagem):
     path = os.path.join(fonteimagem.caminho, caminho)
     pathdest = os.path.join(homedir, "static/busca/")
     print(path)
     numero = None
-    alerta = ""
     mensagem = "Imagens carregadas!"
     from .models import ConteinerEscaneado
 
@@ -116,28 +103,23 @@ def carregaarquivos(homedir, caminho, size, fonteimagem):
                 print(dirpath)
                 tree = ET.parse(os.path.join(dirpath, f))
                 root = tree.getroot()
-                numeros = []
                 for tag in root.iter('ContainerId'):
-                    numeros.append(tag.text)
+                    lnumero = tag.text
+                    if lnumero is not None:
+                        print("Numero")
+                        print(lnumero)
+                        numero = lnumero.replace('?', 'X')
                 for tag in root.iter('TruckId'):
                     truckid=tag.text
-                for tag in root.iter('Login'):
-                    login=tag.text
-                for tag in root.iter('Custom2'):
-                    custom2=tag.text
-                    if custom2 is not "":
-                        print("Alerta")
-                        print(custom2)
-                        alerta = custom2
+                    print(truckid)
                 for tag in root.iter('Date'):
                     data=tag.text
                     print(data)
-                for numero in numeros:
+                if numero is not None:
                     print('Processando...')
                     ano = data[:4]
                     mes = data[5:7]
                     dia = data[8:10]
-                    numero = numero.replace('?', 'X')
                     destparcial = os.path.join(ano, mes, dia, numero)
                     destcompleto = os.path.join(pathdest, destparcial)
                     print(destcompleto)
@@ -153,7 +135,6 @@ def carregaarquivos(homedir, caminho, size, fonteimagem):
                         print(name)
                         copyfile(file, os.path.join(destcompleto, name))
                         recortaesalva(file, size, os.path.join(destcompleto, numero+'.jpg'))
-                        
                         c = ConteinerEscaneado()
                         c.numero = numero
                         c.arqimagem = destparcial+'/'+numero+'.jpg'
@@ -161,8 +142,6 @@ def carregaarquivos(homedir, caminho, size, fonteimagem):
                         c.fonte = fonteimagem
                         c.pub_date = data
                         c.truckid = truckid
-                        c.login = login
-                        c.alerta = alerta
                         try:
                             c.save()
                             mensagem = mensagem + numero + " incluído"
