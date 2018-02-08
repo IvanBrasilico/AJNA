@@ -398,5 +398,6 @@ def recDump():
     print('Dump realizado')
     conn.close()
 
+@transaction.atomic
 def exportaimagens(request):
     return JsonResponse(exporta_arquivos())

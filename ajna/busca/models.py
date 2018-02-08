@@ -87,7 +87,8 @@ def trata_agendamentos():
         print('Não tem agendamentos!')
 
 
-IMG_FOLDER = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'imagens')
+IMG_FOLDER = os.path.join(os.path.dirname(
+    __file__), '..', '..', '..', 'imagens')
 DEST_PATH = os.path.join(os.path.dirname(__file__))
 UNIDADE = 'ALFSTS:'
 
@@ -95,7 +96,7 @@ from django.forms.models import model_to_dict
 
 
 def exporta_arquivos():
-    nao_exportados = ConteinerEscaneado.objects.all().filter(exportado=0)[:10]
+    nao_exportados = ConteinerEscaneado.objects.all().filter(exportado=0)[:1000]
     dict_export = {}
     print(len(nao_exportados))
     for containerescaneado in nao_exportados:
@@ -103,20 +104,18 @@ def exporta_arquivos():
         imagem = '/'.join(containerescaneado.arqimagemoriginal.split('\\'))
         dict_export[str(containerescaneado.id)] = {
             'contentType': 'image/jpeg',
-            'metadata': {
-                'id': UNIDADE + str(containerescaneado.id),
-                'imagem': imagem,
-                'dataimportacao': containerescaneado.pub_date,
-                'numeroinformado': containerescaneado.numero,
-                'truckid': containerescaneado.truckid,
-                'recintoid': str(containerescaneado.fonte.id),
-                'recinto': containerescaneado.fonte.nome
-            }
+            'id': UNIDADE + str(containerescaneado.id),
+            'imagem': imagem,
+            'dataimportacao': containerescaneado.pub_date,
+            'numeroinformado': containerescaneado.numero,
+            'truckid': containerescaneado.truckid,
+            'recintoid': str(containerescaneado.fonte.id),
+            'recinto': containerescaneado.fonte.nome
         }
     bsonimagelist = BsonImageList()
     for key, value in dict_export.items():
         # Puxa arquivo .jpg
-        jpegfile = os.path.join(IMG_FOLDER, value['metadata']['imagem'])
+        jpegfile = os.path.join(IMG_FOLDER, value['imagem'])
         bsonimage = BsonImage(filename=jpegfile, **value)
         bsonimagelist.addBsonImage(bsonimage)
         # Puxa arquivo .xml
@@ -126,4 +125,7 @@ def exporta_arquivos():
         bsonimage = BsonImage(filename=xmlfile, **value)
         bsonimagelist.addBsonImage(bsonimage)
     bsonimagelist.tofile(os.path.join(DEST_PATH, 'list.bson'))
+    for containerescaneado in nao_exportados:
+        containerescaneado.exportado = 1
+        containerescaneado.save()
     return dict_export

@@ -1,5 +1,5 @@
+import os
 import gzip
-import os 
 from collections import OrderedDict
 from pathlib import Path
 
@@ -35,8 +35,7 @@ class BsonImage():
     def todict(self):
         return dict(metadata=self._metadata,
                     filename=self._filename,
-                    content=bytes(self._content)
-                    )
+                    content=self._content)
 
     @property
     def tobson(self):
@@ -63,8 +62,8 @@ class BsonImage():
         return result
 
     def tomongo(self, fs):
-        with open(self._filename, 'rb') as myfile:
-            file_id = fs.put(myfile, **self.todict)
+        file_id = fs.put(self._content, filename=self._filename,
+                         metadata=self._metadata)
         return file_id
 
     @classmethod
@@ -128,10 +127,9 @@ class BsonImageList():
 
     def tomongo(self, fs):
         files_ids = []
-        for index, bsonimage in enumerate(self._bsonimagelist):
-            with open(bsonimage._filename, 'rb') as myfile:
-                file_id = fs.put(myfile, **bsonimage.todict)
-                files_ids.append(file_id)
+        for bsonimage in self._bsonimagelist:
+            file_id = bsonimage.tomongo(fs)
+            files_ids.append(file_id)
         return files_ids
 
     @classmethod
