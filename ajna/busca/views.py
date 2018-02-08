@@ -1,9 +1,10 @@
 from django.shortcuts import render, render_to_response, get_object_or_404
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.template import RequestContext
+from django.http import JsonResponse
 # Create your views here.
 from django.views import generic
-from .models import FonteImagem, ConteinerEscaneado, Agendamento
+from .models import FonteImagem, ConteinerEscaneado, Agendamento, exporta_arquivos
 from .forms import ImageUploadForm
 import csv
 from io import StringIO
@@ -20,20 +21,22 @@ import io
 from datetime import datetime
 import pickle
 import os
-import tflearn
 import sqlite3
 
 ### Inicialização/configuração - depois COLOCAR EM ARQUIVO ESPECÍFICO
-from .modelfully import modelfully1
 from .utils import checavazio
 from .utils import predizpeso
 from .utils import montalistabusca
 
 size = (256, 120)
+homedir = os.path.dirname(os.path.abspath(__file__))
+
+"""
+import tflearn
+from .modelfully import modelfully1
 inputsize = int(size[0]*size[1])
 model, encoder, decode = modelfully1(inputsize)
 global homedir 
-homedir = os.path.dirname(os.path.abspath(__file__))
 modeldir = os.path.join(homedir, 'plano', 'conteineresencoder.tflearn' )
 model.load(modeldir)
 global encoding_model
@@ -41,11 +44,10 @@ encoding_model = tflearn.DNN(encoder, session=model.session)
 print("Modelo carregado")   
 global order
 global imgsimilar
-#homedir = '/home/ivan/Estudo/NanoDegree/ajna/busca/'
 staticdir = os.path.join(homedir, 'static/busca')
 order = None
 imgsimilar = None
-
+"""
 def indexview(request):
     FonteImagem_list = FonteImagem.objects.all().order_by('nome')
     Agregadolist = ConteinerEscaneado.getTotalporFonteImagem()
@@ -395,3 +397,6 @@ def recDump():
     cursor.executescript(sqlite)
     print('Dump realizado')
     conn.close()
+
+def exportaimagens(request):
+    return JsonResponse(exporta_arquivos())

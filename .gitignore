@@ -85,15 +85,13 @@ ajna/manage\.bat
 
 ajna/busca/migrations/0021_auto_20170831_1649\.py
 
-ajna/agendamentoMARIMEX20170901 2359
-
-ajna/agendamentoMARIMEX20170902 2359
-
-ajna/agendamentoMARIMEX20170903 2359
+ajna/agendamento*
 
 *.zip
 
 *.idea
 
 __pycache__
-ajna/busca/busca/static/busca/2017/
+ajna/busca/busca/static/busca/2017/*
+venv*
+

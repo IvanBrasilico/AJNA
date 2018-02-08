@@ -31,5 +31,6 @@ urlpatterns = [
     url(r'^buscasimilar/(?P<pk>[0-9]+)/$', views.buscasimilar, name='buscasimilar'),
     url(r'^indexar/$', views.indexar, name='indexar'),
     url(r'^carregaimagens/$', views.carregaimagens, name='carregaimagens'),
+    url(r'^exportaimagens/$', views.exportaimagens, name='exportaimagens'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 

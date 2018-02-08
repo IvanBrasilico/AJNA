@@ -5,4 +5,5 @@ tflearn==0.3.1
 scipy==0.18.1
 Django==1.11.2
 Pillow==4.2.1
+pymongo
 scikit_learn==0.18.2
