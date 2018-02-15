@@ -96,3 +96,5 @@ ajna/busca/busca/static/busca/2017/*
 venv*
 
 ajna/db.sqlite3.old
+
+*.bson
