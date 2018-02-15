@@ -96,9 +96,13 @@ from django.forms.models import model_to_dict
 
 
 def exporta_arquivos():
-    nao_exportados = ConteinerEscaneado.objects.all().filter(exportado=0)[:1000]
+    nao_exportados = ConteinerEscaneado.objects.all().filter(exportado=0)[
+        :1000]
     dict_export = {}
     print(len(nao_exportados))
+    start = nao_exportados[0].pub_date
+    end = nao_exportados[999].pub_date
+
     for containerescaneado in nao_exportados:
         # print(containerescaneado.numero)
         imagem = '/'.join(containerescaneado.arqimagemoriginal.split('\\'))
@@ -124,7 +128,9 @@ def exporta_arquivos():
         value['contentType'] = 'text/xml'
         bsonimage = BsonImage(filename=xmlfile, **value)
         bsonimagelist.addBsonImage(bsonimage)
-    bsonimagelist.tofile(os.path.join(DEST_PATH, 'list.bson'))
+    name = datetime.datetime.strftime(start, '%Y-%m-%d%H:%M:%S') + '--' + \
+        datetime.datetime.strftime(end, '%Y-%m-%d%H:%M:%S')
+    bsonimagelist.tofile(os.path.join(DEST_PATH, name + '-list.bson'))
     for containerescaneado in nao_exportados:
         containerescaneado.exportado = 1
         containerescaneado.save()
