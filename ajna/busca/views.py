@@ -454,7 +454,7 @@ def recDump():
 @transaction.atomic
 def exportaimagens(request):
     batch_size = request.GET.get('batch_size')
-    dict_export, name, qtde = exporta_arquivos(batch_size)
+    dict_export, name, qtde = exporta_arquivos(int(batch_size))
     mensagem = (str(qtde) + ' imagens exportadas junto com XML correspondente'
                 ' para o arquivo AJNA/ajna/busca/' + name)
     return render_to_response('busca/index.html',
