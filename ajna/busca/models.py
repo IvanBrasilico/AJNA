@@ -1,6 +1,7 @@
 import os
 from django.db import models
 import datetime
+import time
 from .filefunctions import carregaarquivos
 from .bsonimage import BsonImage, BsonImageList
 # Create your models here.
@@ -95,14 +96,17 @@ UNIDADE = 'ALFSTS:'
 from django.forms.models import model_to_dict
 
 
-def exporta_arquivos():
-    nao_exportados = ConteinerEscaneado.objects.all().filter(exportado=0)[
-        :1000]
+def exporta_arquivos(batch_size):
+    if not batch_size:
+        batch_size = 1000
+    s0 = time.time()
+    nao_exportados = ConteinerEscaneado.objects.all().filter(
+        exportado=0)[:batch_size]
     dict_export = {}
-    print(len(nao_exportados))
     start = nao_exportados[0].pub_date
-    end = nao_exportados[999].pub_date
-
+    end = nao_exportados[batch_size - 1].pub_date
+    s1 = time.time()
+    print('Consulta no banco efetuada em ', s1 - s0, ' segundos')
     for containerescaneado in nao_exportados:
         # print(containerescaneado.numero)
         imagem = '/'.join(containerescaneado.arqimagemoriginal.split('\\'))
@@ -116,22 +120,28 @@ def exporta_arquivos():
             'recintoid': str(containerescaneado.fonte.id),
             'recinto': containerescaneado.fonte.nome
         }
+    s2 = time.time()
+    print('Dicionário montado em ', s2 - s1, ' segundos')
     bsonimagelist = BsonImageList()
     for key, value in dict_export.items():
         # Puxa arquivo .jpg
         jpegfile = os.path.join(IMG_FOLDER, value['imagem'])
         bsonimage = BsonImage(filename=jpegfile, **value)
         bsonimagelist.addBsonImage(bsonimage)
+        # print(jpegfile)
         # Puxa arquivo .xml
-        print(jpegfile)
         xmlfile = jpegfile.split('S_stamp')[0] + '.xml'
         value['contentType'] = 'text/xml'
         bsonimage = BsonImage(filename=xmlfile, **value)
         bsonimagelist.addBsonImage(bsonimage)
-    name = datetime.datetime.strftime(start, '%Y-%m-%d%H:%M:%S') + '--' + \
-        datetime.datetime.strftime(end, '%Y-%m-%d%H:%M:%S')
-    bsonimagelist.tofile(os.path.join(DEST_PATH, name + '-list.bson'))
+    name = datetime.datetime.strftime(start, '%Y-%m-%d_%H:%M:%S') + '_' + \
+        datetime.datetime.strftime(end, '%Y-%m-%d_%H:%M:%S')
+    bsonimagelist.tofile(os.path.join(DEST_PATH, name + '_list.bson'))
+    s3 = time.time()
+    print('Bson montado em ', s3 - s2, ' segundos')
     for containerescaneado in nao_exportados:
         containerescaneado.exportado = 1
         containerescaneado.save()
-    return dict_export
+    s4 = time.time()
+    print('Banco de dados atualizado em ', s4 - s3, ' segundos')
+    return dict_export, name, len(nao_exportados)
