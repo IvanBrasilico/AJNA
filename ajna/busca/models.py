@@ -10,7 +10,7 @@ from .bsonimage import BsonImage, BsonImageList
 class FonteImagem(models.Model):
     nome = models.CharField(max_length=20)
     caminho = models.CharField(max_length=200)
-    pub_date = models.DateTimeField('Data de registro')
+    pub_date = models.DateTimeField('Data do escaneamento retirada do arquivo XML')
 
     def __str__(self):
         return self.nome
@@ -89,7 +89,7 @@ def trata_agendamentos():
 
 
 IMG_FOLDER = os.path.join(os.path.dirname(
-    __file__), '..', '..', '..', 'imagens')
+    __file__), 'static', 'busca')
 DEST_PATH = os.path.join(os.path.dirname(__file__))
 UNIDADE = 'ALFSTS:'
 
@@ -109,12 +109,12 @@ def exporta_arquivos(batch_size):
     print('Consulta no banco efetuada em ', s1 - s0, ' segundos')
     for containerescaneado in nao_exportados:
         # print(containerescaneado.numero)
-        imagem = '/'.join(containerescaneado.arqimagemoriginal.split('\\'))
+        imagem = os.path.join(*containerescaneado.arqimagemoriginal.split('\\'))
         dict_export[str(containerescaneado.id)] = {
             'contentType': 'image/jpeg',
             'id': UNIDADE + str(containerescaneado.id),
             'imagem': imagem,
-            'dataimportacao': containerescaneado.pub_date,
+            'dataescaneamento': containerescaneado.pub_date,
             'numeroinformado': containerescaneado.numero,
             'truckid': containerescaneado.truckid,
             'recintoid': str(containerescaneado.fonte.id),
@@ -126,16 +126,16 @@ def exporta_arquivos(batch_size):
     for key, value in dict_export.items():
         # Puxa arquivo .jpg
         jpegfile = os.path.join(IMG_FOLDER, value['imagem'])
+        print(jpegfile)
         bsonimage = BsonImage(filename=jpegfile, **value)
         bsonimagelist.addBsonImage(bsonimage)
-        # print(jpegfile)
         # Puxa arquivo .xml
         xmlfile = jpegfile.split('S_stamp')[0] + '.xml'
         value['contentType'] = 'text/xml'
         bsonimage = BsonImage(filename=xmlfile, **value)
         bsonimagelist.addBsonImage(bsonimage)
-    name = datetime.datetime.strftime(start, '%Y-%m-%d_%H:%M:%S') + '_' + \
-        datetime.datetime.strftime(end, '%Y-%m-%d_%H:%M:%S')
+    name = datetime.datetime.strftime(start, '%Y-%m-%d_%H-%M-%S') + '_' + \
+        datetime.datetime.strftime(end, '%Y-%m-%d_%H-%M-%S')
     bsonimagelist.tofile(os.path.join(DEST_PATH, name + '_list.bson'))
     s3 = time.time()
     print('Bson montado em ', s3 - s2, ' segundos')
