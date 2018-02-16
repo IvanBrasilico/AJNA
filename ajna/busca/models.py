@@ -98,7 +98,7 @@ from django.forms.models import model_to_dict
 
 def exporta_arquivos(batch_size):
     if not batch_size:
-        batch_size = 1000
+        batch_size = 300
     s0 = time.time()
     nao_exportados = ConteinerEscaneado.objects.all().filter(
         exportado=0)[:batch_size]
