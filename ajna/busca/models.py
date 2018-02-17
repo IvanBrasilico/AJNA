@@ -144,6 +144,6 @@ def exporta_arquivos(batch_size):
     for containerescaneado in nao_exportados:
         containerescaneado.exportado = 1
         containerescaneado.save()
-    s4 = time.time()
-    print('Banco de dados atualizado em ', s4 - s3, ' segundos')
+    s5 = time.time()
+    print('Banco de dados atualizado em ', s5 - s4, ' segundos')
     return dict_export, name, len(nao_exportados)
