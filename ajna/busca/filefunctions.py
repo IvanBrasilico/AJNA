@@ -141,7 +141,8 @@ def carregaarquivos(homedir, caminho, size, fonteimagem):
                         c.arqimagemoriginal = destparcial+'/'+name
                         c.fonte = fonteimagem
                         c.pub_date = data
-                        c.file_date = os.path.getmtime(file)
+                        c.file_mdate = os.path.getmtime(file)
+                        c.file_cdate = os.path.getctime(file)
                         c.truckid = truckid
                         try:
                             c.save()
