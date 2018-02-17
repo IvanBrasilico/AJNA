@@ -10,7 +10,7 @@ from .bsonimage import BsonImage, BsonImageList
 class FonteImagem(models.Model):
     nome = models.CharField(max_length=20)
     caminho = models.CharField(max_length=200)
-    pub_date = models.DateTimeField('Data do escaneamento retirada do arquivo XML')
+    pub_date = models.DateTimeField('Data de registro')
 
     def __str__(self):
         return self.nome
@@ -19,7 +19,8 @@ class FonteImagem(models.Model):
 class ConteinerEscaneado(models.Model):
     fonte = models.ForeignKey(FonteImagem, on_delete=models.CASCADE)
     numero = models.CharField(max_length=11)
-    pub_date = models.DateTimeField('Data de registro')
+    pub_date = models.DateTimeField('Data do escaneamento retirada do arquivo XML')
+    file_date = models.DateTimeField('Data da última modificação do arquivo')
     arqimagemoriginal = models.CharField(max_length=150, blank=True)
     arqimagem = models.CharField(max_length=150, blank=True)
     truckid = models.CharField(max_length=150, blank=True)
@@ -70,7 +71,7 @@ class Agendamento(models.Model):
 
 
 def trata_agendamentos():
-    lista_agendamentos = Agendamento.agendamentos_pendentes()
+    lista_agendamentos = [] # Agendamento.agendamentos_pendentes()
     if len(lista_agendamentos) > 0:
         print('Tem agendamentos!')
         from .views import homedir, size
