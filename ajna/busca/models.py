@@ -136,9 +136,11 @@ def exporta_arquivos(batch_size):
         bsonimagelist.addBsonImage(bsonimage)
     name = datetime.datetime.strftime(start, '%Y-%m-%d_%H-%M-%S') + '_' + \
         datetime.datetime.strftime(end, '%Y-%m-%d_%H-%M-%S')
-    bsonimagelist.tofile(os.path.join(DEST_PATH, name + '_list.bson'))
     s3 = time.time()
     print('Bson montado em ', s3 - s2, ' segundos')
+    bsonimagelist.tofile(os.path.join(DEST_PATH, name + '_list.bson'))
+    s4 = time.time()
+    print('Bson salvo em ', s4 - s3, ' segundos')
     for containerescaneado in nao_exportados:
         containerescaneado.exportado = 1
         containerescaneado.save()
