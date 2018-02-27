@@ -19,7 +19,8 @@ class FonteImagem(models.Model):
 class ConteinerEscaneado(models.Model):
     fonte = models.ForeignKey(FonteImagem, on_delete=models.CASCADE)
     numero = models.CharField(max_length=11)
-    pub_date = models.DateTimeField('Data do escaneamento retirada do arquivo XML')
+    pub_date = models.DateTimeField(
+        'Data do escaneamento retirada do arquivo XML')
     file_mdate = models.DateTimeField('Data da última modificação do arquivo')
     file_cdate = models.DateTimeField('Data da criação do arquivo (Windows)')
     arqimagemoriginal = models.CharField(max_length=150, blank=True)
@@ -72,7 +73,7 @@ class Agendamento(models.Model):
 
 
 def trata_agendamentos():
-    lista_agendamentos = [] # Agendamento.agendamentos_pendentes()
+    lista_agendamentos = []  # Agendamento.agendamentos_pendentes()
     if len(lista_agendamentos) > 0:
         print('Tem agendamentos!')
         from .views import homedir, size
@@ -94,13 +95,16 @@ IMG_FOLDER = os.path.join(os.path.dirname(
     __file__), 'static', 'busca')
 DEST_PATH = os.path.join(os.path.dirname(__file__))
 UNIDADE = 'ALFSTS:'
+BATCH_SIZE = 5000
 
-from django.forms.models import model_to_dict
+# Uncomment if images are outside (on development station for example)
+IMG_FOLDER = os.path.join(os.path.dirname(__file__), '..', '..',
+                          '..', 'imagens')
 
 
 def exporta_arquivos(batch_size):
     if not batch_size:
-        batch_size = 300
+        batch_size = BATCH_SIZE
     s0 = time.time()
     nao_exportados = ConteinerEscaneado.objects.all().filter(
         exportado=0)[:batch_size]
@@ -111,12 +115,15 @@ def exporta_arquivos(batch_size):
     print('Consulta no banco efetuada em ', s1 - s0, ' segundos')
     for containerescaneado in nao_exportados:
         # print(containerescaneado.numero)
-        imagem = os.path.join(*containerescaneado.arqimagemoriginal.split('\\'))
+        imagem = os.path.join(
+            *containerescaneado.arqimagemoriginal.split('\\'))
         dict_export[str(containerescaneado.id)] = {
             'contentType': 'image/jpeg',
             'id': UNIDADE + str(containerescaneado.id),
             'imagem': imagem,
             'dataescaneamento': containerescaneado.pub_date,
+            'criacaoarquivo': containerescaneado.file_cdate,
+            'modificacaoarquivo': containerescaneado.file_mdate,
             'numeroinformado': containerescaneado.numero,
             'truckid': containerescaneado.truckid,
             'recintoid': str(containerescaneado.fonte.id),
