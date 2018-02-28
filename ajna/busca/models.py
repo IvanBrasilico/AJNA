@@ -95,11 +95,10 @@ IMG_FOLDER = os.path.join(os.path.dirname(
     __file__), 'static', 'busca')
 DEST_PATH = os.path.join(os.path.dirname(__file__))
 UNIDADE = 'ALFSTS:'
-BATCH_SIZE = 5000
+BATCH_SIZE = 300
 
 # Uncomment if images are outside (on development station for example)
-IMG_FOLDER = os.path.join(os.path.dirname(__file__), '..', '..',
-                          '..', 'imagens')
+# IMG_FOLDER = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'imagens')
 
 
 def exporta_arquivos(batch_size):
@@ -120,6 +119,8 @@ def exporta_arquivos(batch_size):
         dict_export[str(containerescaneado.id)] = {
             'contentType': 'image/jpeg',
             'id': UNIDADE + str(containerescaneado.id),
+            'UNIDADE': UNIDADE,
+            'idcov' str(containerescaneado.id),
             'imagem': imagem,
             'dataescaneamento': containerescaneado.pub_date,
             'criacaoarquivo': containerescaneado.file_cdate,
