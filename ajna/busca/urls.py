@@ -22,6 +22,8 @@ urlpatterns = [
     # url(r'^frmimagem/$', views.frmimagem, name='frmimagem'),
     url(r'^buscaimagem/$', views.buscaimagem, name='buscaimagem'),
     url(r'^buscaconteiner/$', views.buscaconteiner, name='buscaconteiner'),    
-    url(r'^exportaimagens/$', views.exportaimagens, name='exportaimagens'),
+    url(r'^trataagendamentos/$', views.trataagendamentos, name='trataagendamentos'),
+    url(r'^exportabson/$', views.exportabson, name='exportabson'),
+    url(r'^zerabson/$', views.zerabson, name='zerabson'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
