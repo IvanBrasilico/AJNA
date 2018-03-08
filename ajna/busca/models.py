@@ -5,7 +5,7 @@ import time
 from .filefunctions import carregaarquivos
 from .bsonimage import BsonImage, BsonImageList
 # Create your models here.
-
+from sys import platform 
 
 class FonteImagem(models.Model):
     nome = models.CharField(max_length=20)
@@ -98,11 +98,15 @@ UNIDADE = 'ALFSTS:'
 BATCH_SIZE = 1000
 
 # Uncomment if images are outside (on development station for example)
+# Automatically assumes that if running on linux is on development station,
+# Since this module normally run in windows stations to acquire files
 # """
-IMG_FOLDER = os.path.join(os.path.dirname(
-    __file__), '..', '..', '..', 'imagens')
-DEST_PATH = os.path.join(os.path.dirname(
-    __file__), '..', '..', '..', 'files', 'BSON')
+if platform != 'win32':
+    print('Tks, Lord!!! No weird windows...')
+    IMG_FOLDER = os.path.join(os.path.dirname(
+        __file__), '..', '..', '..', 'imagens')
+    DEST_PATH = os.path.join(os.path.dirname(
+        __file__), '..', '..', '..', 'files', 'BSON')
 # """
 def exporta_bson(batch_size=BATCH_SIZE):
     if not batch_size:
