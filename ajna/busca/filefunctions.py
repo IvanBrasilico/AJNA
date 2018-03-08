@@ -1,14 +1,15 @@
 from PIL import Image
-import numpy as np
 import os
 import glob
-from scipy import misc
+# from scipy import misc
 import xml.etree.ElementTree as ET
 import fnmatch
 from shutil import copyfile
 
 from django.db import IntegrityError
 
+
+"""
 def loadimages(path, input):
     numarquivos = int(len([name for name in os.listdir(path) if name.endswith('jpg')]))
     X = np.ndarray(shape=(numarquivos, input), dtype=np.float32)
@@ -87,6 +88,7 @@ def recortaesalva(ofile, size, odest):
         imnova.save(odest, quality=100)
         os.remove(destfile)
         return imnova
+"""
 
 def carregaarquivos(homedir, caminho, size, fonteimagem):
     path = os.path.join(fonteimagem.caminho, caminho)
@@ -135,10 +137,10 @@ def carregaarquivos(homedir, caminho, size, fonteimagem):
                             name = os.path.basename(file)
                             print(name)
                             copyfile(file, os.path.join(destcompleto, name))
-                            recortaesalva(file, size, os.path.join(destcompleto, numero+'.jpg'))
+                            # recortaesalva(file, size, os.path.join(destcompleto, numero+'.jpg'))
                             c = ConteinerEscaneado()
                             c.numero = numero
-                            c.arqimagem = destparcial+'/'+numero+'.jpg'
+                            # c.arqimagem = destparcial+'/'+numero+'.jpg'
                             c.arqimagemoriginal = destparcial+'/'+name
                             c.fonte = fonteimagem
                             c.pub_date = data

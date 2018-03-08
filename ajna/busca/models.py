@@ -155,12 +155,12 @@ def exporta_bson(batch_size=BATCH_SIZE):
         datetime.datetime.strftime(end, '%Y-%m-%d_%H-%M-%S')
     s3 = time.time()
     print('Bson montado em ', s3 - s2, ' segundos')
-    bsonimagelist.tofile(os.path.join(DEST_PATH, name + '_list.bson'))
-    s4 = time.time()
-    print('Bson salvo em ', s4 - s3, ' segundos')
     for containerescaneado in nao_exportados:
         containerescaneado.exportado = 1
         containerescaneado.save()
-    s5 = time.time()
-    print('Banco de dados atualizado em ', s5 - s4, ' segundos')
+    s4 = time.time()
+    print('Banco de dados atualizado em ', s4 - s3, ' segundos')
+    bsonimagelist.tofile(os.path.join(DEST_PATH, name + '_list.bson'))
+    s4 = time.time()
+    print('Bson salvo em ', s5 - s4, ' segundos')
     return dict_export, name, len(nao_exportados)

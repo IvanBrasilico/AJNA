@@ -28,6 +28,13 @@ import threading
 import schedule
 import time
 
+
+def trata_agendamentos_exporta_bson():
+    """Para não ter concorrência entre Threads,
+    somente esta fará save no banco, e sempre sequencial!!!
+    """
+    trata_agendamentos()
+    exporta_bson()
 class myThread (threading.Thread):
    def __init__(self, threadID, name):
       threading.Thread.__init__(self)
@@ -36,8 +43,7 @@ class myThread (threading.Thread):
       self.lastrun = 0
    def run(self):
        print ("Starting " + self.name)
-       schedule.every(5).minutes.do(trata_agendamentos)
-       schedule.every(2).minutes.do(exporta_bson)
+       schedule.every(2).minutes.do(trata_agendamentos_exporta_bson)
        while True:
            schedule.run_pending()
            time.sleep(1)

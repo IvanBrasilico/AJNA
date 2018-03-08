@@ -8,11 +8,9 @@ from django.db import transaction
 from .models import FonteImagem, ConteinerEscaneado, Agendamento, exporta_bson
 import csv
 from io import StringIO
-import pandas as pd
 import locale
 locale.setlocale(locale.LC_ALL, '')
 import collections
-import zipfile as zipf
 import shutil
 
 import io
