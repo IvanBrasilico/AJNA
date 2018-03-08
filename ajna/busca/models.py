@@ -73,15 +73,15 @@ class Agendamento(models.Model):
 
 
 def trata_agendamentos():
-    lista_agendamentos = []  # Agendamento.agendamentos_pendentes()
+    lista_agendamentos = Agendamento.agendamentos_pendentes()
     if len(lista_agendamentos) > 0:
         print('Tem agendamentos!')
         from .views import homedir, size
         for ag in lista_agendamentos:
             fonte = ag.fonte
             caminho = ag.processamascara()
-            mensagem = carregaarquivos(homedir, caminho, size, fonte)
-            with open('agendamento'+ag.fonte.nome+ag.proximocarregamento.strftime('%Y%m%d %H%M'), 'w') as f:
+            mensagem, erro = carregaarquivos(homedir, caminho, size, fonte)
+            with open('log' + datetime.datetime.now().strftime('%Y%m%d'), 'a') as f:
                 f.write(mensagem)
                 f.close()
             ag.proximocarregamento = ag.proximocarregamento + \
@@ -95,13 +95,16 @@ IMG_FOLDER = os.path.join(os.path.dirname(
     __file__), 'static', 'busca')
 DEST_PATH = os.path.join(os.path.dirname(__file__))
 UNIDADE = 'ALFSTS:'
-BATCH_SIZE = 300
+BATCH_SIZE = 1000
 
 # Uncomment if images are outside (on development station for example)
-# IMG_FOLDER = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'imagens')
-
-
-def exporta_arquivos(batch_size):
+# """
+IMG_FOLDER = os.path.join(os.path.dirname(
+    __file__), '..', '..', '..', 'imagens')
+DEST_PATH = os.path.join(os.path.dirname(
+    __file__), '..', '..', '..', 'files', 'BSON')
+# """
+def exporta_bson(batch_size=BATCH_SIZE):
     if not batch_size:
         batch_size = BATCH_SIZE
     s0 = time.time()
@@ -120,7 +123,7 @@ def exporta_arquivos(batch_size):
             'contentType': 'image/jpeg',
             'id': UNIDADE + str(containerescaneado.id),
             'UNIDADE': UNIDADE,
-            'idcov' str(containerescaneado.id),
+            'idcov': str(containerescaneado.id),
             'imagem': imagem,
             'dataescaneamento': containerescaneado.pub_date,
             'criacaoarquivo': containerescaneado.file_cdate,
@@ -136,7 +139,7 @@ def exporta_arquivos(batch_size):
     for key, value in dict_export.items():
         # Puxa arquivo .jpg
         jpegfile = os.path.join(IMG_FOLDER, value['imagem'])
-        print(jpegfile)
+        # print(jpegfile)
         bsonimage = BsonImage(filename=jpegfile, **value)
         bsonimagelist.addBsonImage(bsonimage)
         # Puxa arquivo .xml

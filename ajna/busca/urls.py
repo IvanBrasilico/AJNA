@@ -17,20 +17,11 @@ urlpatterns = [
     url(r'^(?P<pk>[0-9]+)/$', views.FonteDetailView.as_view(), name='FonteDetailView'),
     url(r'^conteiner/(?P<pk>[0-9]+)/$', views.conteinerdetail, name='c'),
     # ex: /busca/5/results/
-    #url(r'^(?P<question_id>[0-9]+)/results/$', views.results, name='results'),
+    # url(r'^(?P<question_id>[0-9]+)/results/$', views.results, name='results'),
     # ex: /busca/formimagem
-    url(r'^frmimagem/$', views.frmimagem, name='frmimagem'),
-    url(r'^frmlistavazios/$', views.frmlistavazios, name='frmlistavazios'),
-    url(r'^frmcomparapesos/$', views.frmcomparapesos, name='frmcomparapesos'),
-    url(r'^frmcompactandoarquivos/$', views.frmcompactandoarquivos, name='frmcompactandoarquivos'),
-    url(r'^listavazios/$', views.listavazios, name='listavazios'),
-    url(r'^comparapesos/$', views.comparapesos, name='comparapesos'),
-    url(r'^compactandoarquivos/$', views.compactandoarquivos, name='compactandoarquivos'),
+    # url(r'^frmimagem/$', views.frmimagem, name='frmimagem'),
     url(r'^buscaimagem/$', views.buscaimagem, name='buscaimagem'),
     url(r'^buscaconteiner/$', views.buscaconteiner, name='buscaconteiner'),    
-    url(r'^buscasimilar/(?P<pk>[0-9]+)/$', views.buscasimilar, name='buscasimilar'),
-    url(r'^indexar/$', views.indexar, name='indexar'),
-    url(r'^carregaimagens/$', views.carregaimagens, name='carregaimagens'),
     url(r'^exportaimagens/$', views.exportaimagens, name='exportaimagens'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
