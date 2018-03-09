@@ -139,8 +139,11 @@ def exportabson(request):
         batch_size = int(batch_size)
 
     dict_export, name, qtde = exporta_bson(batch_size)
-    mensagem = (str(qtde) + ' imagens exportadas junto com XML correspondente'
+    if dict_export:
+        mensagem = (str(qtde) + ' imagens exportadas junto com XML correspondente'
                 ' para o arquivo ../files/BSON/' + name)
+    else:
+        mensagem = 'Função retornou apenas '
     return render_to_response('busca/index.html',
                               {'mensagem': mensagem})
 
