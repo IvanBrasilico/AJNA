@@ -117,6 +117,9 @@ def exporta_bson(batch_size=BATCH_SIZE):
     s0 = time.time()
     nao_exportados = ConteinerEscaneado.objects.all().filter(
         exportado=0)[:batch_size]
+    qtde = len(nao_exportados)
+    if batch_size > qtde: #  Não tem arquivos suficientes ainda
+        return {}, '', qtde
     dict_export = {}
     start = nao_exportados[0].pub_date
     end = nao_exportados[batch_size - 1].pub_date
@@ -179,4 +182,4 @@ def exporta_bson(batch_size=BATCH_SIZE):
     bsonimagelist.tofile(os.path.join(DEST_PATH, name + '_list.bson'))
     s5 = time.time()
     print('Bson salvo em ', s5 - s4, ' segundos')
-    return dict_export, name, len(nao_exportados)
+    return dict_export, name, qtde
