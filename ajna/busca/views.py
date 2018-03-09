@@ -5,14 +5,12 @@ from django.http import JsonResponse
 # Create your views here.
 from django.views import generic
 from django.db import transaction
-from .models import FonteImagem, ConteinerEscaneado, Agendamento, exporta_bson
+from .models import FonteImagem, ConteinerEscaneado, Agendamento, exporta_bson, trata_agendamentos
 import csv
 from io import StringIO
-import pandas as pd
 import locale
 locale.setlocale(locale.LC_ALL, '')
 import collections
-import zipfile as zipf
 import shutil
 
 import io
@@ -128,14 +126,28 @@ def buscaimagem(request):
     return paginatorconteiner(request, ConteinerEscaneadol, 'busca/buscaconteiner.html', numero, datainicial, datafinal, login, alerta)
 
 
+def trataagendamentos(request):
+    trata_agendamentos()
+    return render_to_response('busca/index.html',
+                              {'mensagem': 'Agendamentos processados - ver log'})
+
+
 @transaction.atomic
-def exportaimagens(request):
+def exportabson(request):
     batch_size = request.GET.get('batch_size')
     if batch_size:
         batch_size = int(batch_size)
 
     dict_export, name, qtde = exporta_bson(batch_size)
-    mensagem = (str(qtde) + ' imagens exportadas junto com XML correspondente'
+    if dict_export:
+        mensagem = (str(qtde) + ' imagens exportadas junto com XML correspondente'
                 ' para o arquivo ../files/BSON/' + name)
+    else:
+        mensagem = 'Função retornou apenas '
     return render_to_response('busca/index.html',
                               {'mensagem': mensagem})
+
+def zerabson(request):
+    ConteinerEscaneado.objects.all().filter(exportado=1).update(exportado=0)
+    return render_to_response('busca/index.html')
+

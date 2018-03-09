@@ -5,6 +5,7 @@ import time
 from .filefunctions import carregaarquivos
 from .bsonimage import BsonImage, BsonImageList
 # Create your models here.
+from sys import platform
 
 
 class FonteImagem(models.Model):
@@ -77,16 +78,16 @@ def trata_agendamentos():
     if len(lista_agendamentos) > 0:
         print('Tem agendamentos!')
         from .views import homedir, size
-        for ag in lista_agendamentos:
-            fonte = ag.fonte
-            caminho = ag.processamascara()
-            mensagem, erro = carregaarquivos(homedir, caminho, size, fonte)
-            with open('log' + datetime.datetime.now().strftime('%Y%m%d'), 'a') as f:
-                f.write(mensagem)
-                f.close()
-            ag.proximocarregamento = ag.proximocarregamento + \
-                datetime.timedelta(days=ag.diaspararepetir)
-            ag.save()
+        with open('log' + datetime.datetime.now().strftime('%Y%m%d'), 'a') as f:
+            for ag in lista_agendamentos:
+                fonte = ag.fonte
+                caminho = ag.processamascara()
+                mensagem, erro = carregaarquivos(homedir, caminho, size, fonte)
+                f.write(mensagem+'\n')
+                ag.proximocarregamento = ag.proximocarregamento + \
+                    datetime.timedelta(days=ag.diaspararepetir)
+                ag.save()
+            f.close()
     else:
         print('Não tem agendamentos!')
 
@@ -98,18 +99,27 @@ UNIDADE = 'ALFSTS:'
 BATCH_SIZE = 1000
 
 # Uncomment if images are outside (on development station for example)
+# Automatically assumes that if running on linux is on development station,
+# Since this module normally run in windows stations to acquire files
 # """
-IMG_FOLDER = os.path.join(os.path.dirname(
-    __file__), '..', '..', '..', 'imagens')
-DEST_PATH = os.path.join(os.path.dirname(
-    __file__), '..', '..', '..', 'files', 'BSON')
+if platform != 'win32':
+    print('Tks, Lord!!! No weird windows...')
+    IMG_FOLDER = os.path.join(os.path.dirname(
+        __file__), '..', '..', '..', 'imagens')
+    DEST_PATH = os.path.join(os.path.dirname(
+        __file__), '..', '..', '..', 'files', 'BSON')
 # """
+
+
 def exporta_bson(batch_size=BATCH_SIZE):
     if not batch_size:
         batch_size = BATCH_SIZE
     s0 = time.time()
     nao_exportados = ConteinerEscaneado.objects.all().filter(
         exportado=0)[:batch_size]
+    qtde = len(nao_exportados)
+    if batch_size > qtde: #  Não tem arquivos suficientes ainda
+        return {}, '', qtde
     dict_export = {}
     start = nao_exportados[0].pub_date
     end = nao_exportados[batch_size - 1].pub_date
@@ -135,28 +145,41 @@ def exporta_bson(batch_size=BATCH_SIZE):
         }
     s2 = time.time()
     print('Dicionário montado em ', s2 - s1, ' segundos')
-    bsonimagelist = BsonImageList()
-    for key, value in dict_export.items():
-        # Puxa arquivo .jpg
-        jpegfile = os.path.join(IMG_FOLDER, value['imagem'])
-        # print(jpegfile)
-        bsonimage = BsonImage(filename=jpegfile, **value)
-        bsonimagelist.addBsonImage(bsonimage)
-        # Puxa arquivo .xml
-        xmlfile = jpegfile.split('S_stamp')[0] + '.xml'
-        value['contentType'] = 'text/xml'
-        bsonimage = BsonImage(filename=xmlfile, **value)
-        bsonimagelist.addBsonImage(bsonimage)
+    with open('log' + datetime.datetime.now().strftime('%Y%m%d'), 'a') as f:
+        bsonimagelist = BsonImageList()
+        for key, value in dict_export.items():
+            # Puxa arquivo .jpg
+            jpegfile = os.path.join(IMG_FOLDER, value['imagem'])
+            # print(jpegfile)
+            try:
+                bsonimage = BsonImage(filename=jpegfile, **value)
+                bsonimagelist.addBsonImage(bsonimage)
+            except FileNotFoundError as err:
+                f.write(str(err)+'\n')
+                print(str(err))
+                print(value['imagem'])
+
+            # Puxa arquivo .xml
+            try:
+                xmlfile = jpegfile.split('S_stamp')[0] + '.xml'
+                value['contentType'] = 'text/xml'
+                bsonimage = BsonImage(filename=xmlfile, **value)
+                bsonimagelist.addBsonImage(bsonimage)
+            except FileNotFoundError as err:
+                f.write(str(err)+'\n')
+                print(str(err))
+                print(value['imagem'])
+        f.close()
     name = datetime.datetime.strftime(start, '%Y-%m-%d_%H-%M-%S') + '_' + \
         datetime.datetime.strftime(end, '%Y-%m-%d_%H-%M-%S')
     s3 = time.time()
     print('Bson montado em ', s3 - s2, ' segundos')
-    bsonimagelist.tofile(os.path.join(DEST_PATH, name + '_list.bson'))
-    s4 = time.time()
-    print('Bson salvo em ', s4 - s3, ' segundos')
     for containerescaneado in nao_exportados:
         containerescaneado.exportado = 1
         containerescaneado.save()
+    s4 = time.time()
+    print('Banco de dados atualizado em ', s4 - s3, ' segundos')
+    bsonimagelist.tofile(os.path.join(DEST_PATH, name + '_list.bson'))
     s5 = time.time()
-    print('Banco de dados atualizado em ', s5 - s4, ' segundos')
-    return dict_export, name, len(nao_exportados)
+    print('Bson salvo em ', s5 - s4, ' segundos')
+    return dict_export, name, qtde

@@ -23,25 +23,45 @@ urlpatterns = [
 ]
 
 
-##Inicia Thread para checar agendamentos!!!
+# Inicia Thread para checar agendamentos!!!
 import threading
 import schedule
 import time
 
+
+def trata_agendamentos_exporta_bson():
+    """Para não ter concorrência entre Threads,
+    somente esta fará save no banco, e sempre sequencial!!!
+    """
+    import http.client
+    conn = http.client.HTTPConnection('localhost:8000')
+    conn.request('GET', '/busca/trataagendamentos/')
+    r = conn.getresponse()
+    r.read()
+    print(r.status)
+    time.sleep(10)
+    conn = http.client.HTTPConnection('localhost:8000')
+    conn.request('GET', '/busca/exportabson/')
+    r = conn.getresponse()
+    r.read()
+    print(r.status)
+
+
 class myThread (threading.Thread):
-   def __init__(self, threadID, name):
-      threading.Thread.__init__(self)
-      self.threadID = threadID
-      self.name = name
-      self.lastrun = 0
-   def run(self):
-       print ("Starting " + self.name)
-       schedule.every(5).minutes.do(trata_agendamentos)
-       schedule.every(2).minutes.do(exporta_bson)
-       while True:
-           schedule.run_pending()
-           time.sleep(1)
-       print ("Exiting " + self.name)
+    def __init__(self, threadID, name):
+        threading.Thread.__init__(self)
+        self.threadID = threadID
+        self.name = name
+        self.lastrun = 0
+
+    def run(self):
+        print("Starting " + self.name)
+        schedule.every(1).minutes.do(trata_agendamentos_exporta_bson)
+        while True:
+            schedule.run_pending()
+            time.sleep(1)
+        print("Exiting " + self.name)
+
 
 thread1 = myThread(1, "Thread-Agendamentos")
 thread1.start()
