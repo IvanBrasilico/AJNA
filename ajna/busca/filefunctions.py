@@ -5,7 +5,8 @@ import glob
 import xml.etree.ElementTree as ET
 import fnmatch
 from shutil import copyfile
-
+import time
+from datetime import datetime
 from django.db import IntegrityError
 
 
@@ -92,8 +93,8 @@ def recortaesalva(ofile, size, odest):
 
 def carregaarquivos(homedir, caminho, size, fonteimagem):
     path = os.path.join(fonteimagem.caminho, caminho)
-    pathdest = os.path.join(homedir, "static/busca/")
-    print(path)
+    pathdest = os.path.join(homedir, 'static', 'busca')
+    print('path', path)
     numero = None
     mensagem = ''
     erro = False
@@ -102,8 +103,8 @@ def carregaarquivos(homedir, caminho, size, fonteimagem):
         for result in glob.iglob(path):
             for dirpath, dirnames, files in os.walk(result):
                 for f in fnmatch.filter(files, '*.xml'):
-                    print(f)
-                    print(dirpath)
+                    print('carregaarquivos - f', f)
+                    print('carregaarquivos - dir path', dirpath)
                     tree = ET.parse(os.path.join(dirpath, f))
                     root = tree.getroot()
                     for tag in root.iter('ContainerId'):
@@ -125,13 +126,16 @@ def carregaarquivos(homedir, caminho, size, fonteimagem):
                         dia = data[8:10]
                         destparcial = os.path.join(ano, mes, dia, numero)
                         destcompleto = os.path.join(pathdest, destparcial)
-                        print(destcompleto)
-                        print(destparcial)
+                        print('destcompleto', destcompleto)
+                        print('destparcial', destparcial)
                         try:
                             os.makedirs(destcompleto)
-                        except IOError as e:
-                            print ("Unexpected error: "+e.strerror)
-                            pass
+                        except FileExistsError as e:
+                            erro = True
+                            mensagem = mensagem + \
+                            destcompleto + ' já existente.\n'
+                            print(destcompleto, 'já existente')
+                            continue
                         copyfile(os.path.join(dirpath, f), os.path.join(destcompleto, f))
                         for file in glob.glob(os.path.join(dirpath,'*mp.jpg')):
                             name = os.path.basename(file)
@@ -144,9 +148,15 @@ def carregaarquivos(homedir, caminho, size, fonteimagem):
                             c.arqimagemoriginal = destparcial+'/'+name
                             c.fonte = fonteimagem
                             c.pub_date = data
-                            c.file_mdate = os.path.getmtime(file)
-                            c.file_cdate = os.path.getctime(file)
+                            mdate = time.localtime(os.path.getmtime(file))
+                            mdate = time.strftime('%Y-%m-%d %H:%M:%S%z', mdate)
+                            cdate = time.localtime(os.path.getctime(file))
+                            cdate = time.strftime('%Y-%m-%d %H:%M:%S%z', cdate)
+                            c.file_mdate = mdate
+                            c.file_cdate = cdate #time.localtime(os.path.getctime(file)).strftime('%Y-%m-%d %H:%M:%S')
+                            print(c.pub_date, c.file_mdate, c.file_cdate)
                             c.truckid = truckid
+                            c.exportado = 0
                             try:
                                 c.save()
                                 # mensagem = mensagem + numero + " incluído"
@@ -155,8 +165,9 @@ def carregaarquivos(homedir, caminho, size, fonteimagem):
                                 mensagem = mensagem + path + numero + ' já cadastrado?!\n'
                         numero = None
     except Exception as err:
-        mensagem = str(err)
+        raise(err)
         erro = True
+        mensagem = str(err)
     return mensagem, erro
 
     
