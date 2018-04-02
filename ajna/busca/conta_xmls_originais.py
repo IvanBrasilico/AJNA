@@ -7,11 +7,14 @@ Created on Mon Apr  2 14:50:36 2018
 
 @author: alfts
 """
+import datetime
 import glob
 import fnmatch
 import os
+import sys
 import xml.etree.ElementTree as ET
 from collections import Counter
+from .models import Agendamento
 
 def conta_dir(path):
     """Percorre diretórios de contêineres, abre XML, conta xml válidos.
@@ -42,10 +45,21 @@ def conta_dir(path):
                     counter[ano+mes+dia] += 1
     return counter
 
+def conta_por_agendamento():
+    lista_agendamentos = Agendamento.objects.all()
+    for ag in lista_agendamentos:
+        fonte = ag.fonte
+        data = datetime.datetime(2018, 1, 1)
+        caminho = data.strftime(ag.mascarafiltro)
+        homedir = fonte.caminho
+        path = os.path.join(homedir, caminho)
+        print(path, conta_dir(path))
+        
+
 if __name__=='__main__':
-    # TODO: Call like trata_agendamento, using information form Models
-    caminho = 'P:\\ECOPORTO\\ECOPORTO_ORDENADO\\'
-    path = os.path.join(caminho, '2017', '02', '16')
-    print(conta_dir(path))
+    # TODO: Call like trata_agendamento, using information from Models
+    # caminho = 'P:\\ECOPORTO\\ECOPORTO_ORDENADO\\'
+    # path = os.path.join(caminho, '2017', '02', '16')
+    conta_por_agendamento()
 
 

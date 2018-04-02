@@ -16,6 +16,7 @@ Including another URLconf
 from django.conf.urls import include, url
 from django.contrib import admin
 from busca.models import trata_agendamentos, exporta_bson
+from busca.conta_xmls_originais import conta_por_agendamento
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
@@ -56,7 +57,8 @@ class myThread (threading.Thread):
 
     def run(self):
         print("Starting " + self.name)
-        schedule.every(1).minutes.do(trata_agendamentos_exporta_bson)
+        conta_por_agendamento()
+        schedule.every(10).minutes.do(trata_agendamentos_exporta_bson)
         while True:
             schedule.run_pending()
             time.sleep(1)
