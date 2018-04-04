@@ -1,23 +1,27 @@
-{% extends 'busca/base.html' %}
-{% block content %}
-<div class="w3-container w3-padding-32 w3-left">  
-            <p>Data de publicação: {{ fonteimagem.pub_date }}</p>
-            <p>Nome: {{ fonteimagem.nome }}</p>
-            <p>Caminho: {{ fonteimagem.caminho }}</p>
-            <b>
-            <p><a href="/admin/busca/fonteimagem/{{ fonteimagem.id }}/change/" target="_BLANK">Editar</a></p>
-            <p><a href="/admin/busca/agendamento/" target="_BLANK">Criar agendamento</a></p>
-            </b>
+{% extends 'busca/base.html' %} {% block content %}
+<div class="w3-container w3-padding-32 w3-left">
+    <p>Data de publicação: {{ fonteimagem.pub_date }}</p>
+    <p>Nome: {{ fonteimagem.nome }}</p>
+    <p>Caminho: {{ fonteimagem.caminho }}</p>
+    <b>
+        <p>
+            <a href="/admin/busca/fonteimagem/{{ fonteimagem.id }}/change/" target="_BLANK">Editar</a>
+        </p>
+        <p>
+            <a href="/admin/busca/agendamento/" target="_BLANK">Criar agendamento</a>
+        </p>
+    </b>
 
 </div>
 <h3>Copiar imagens de uma fonte de escaneamento</h3>
-<div class="w3-container w3-padding-32 w3-left">  
-<form action="/busca/carregaimagens/" method="post" id="frmcarregaimagens">
-{% csrf_token %}
- Caminho a copiar:<br>
- <input type="hidden" name="fonteimagem" value="{{ fonteimagem.id }}">
-<input type="text" name="caminho"><br>
-<input type="submit" value="Submit">
-</form>
+<div class="w3-container w3-padding-32 w3-left">
+    <form action="/busca/carregaimagens/" method="post" id="frmcarregaimagens">
+        {% csrf_token %} Caminho a copiar:
+        <br>
+        <input type="hidden" name="fonteimagem" value="{{ fonteimagem.id }}">
+        <input type="text" name="caminho">
+        <br>
+        <input type="submit" value="Submit">
+    </form>
 </div>
 {% endblock %}

@@ -1,15 +1,19 @@
 {% block content %}
-<div  class="post">
-<form action="/busca/buscaimagem/" method="post" id="frmbuscaimagem">
-{% csrf_token %}
-Numero: <input type="text" name="numero" value="{{ numero }}">
-Data inicial: <input type="text" name="datainicial" value="{{ datainicial }}">
-Data final: <input type="text" name="datafinal" value="{{ datafinal }}">
-<br></br>
-Operador: <input type="text" name="login" value="{{ login }}">
-Conteineres sinalizados com alerta: <input type="text" name="alerta" value="{{ alerta }}">
-<input type="submit" value="Filtrar">
-</form>
+<div class="post">
+    <form action="/busca/buscaimagem/" method="post" id="frmbuscaimagem">
+        {% csrf_token %}
+        <div class="form-group col-sm-12">
+            <div class="form-control">
+                <input class="form-control" type="text" name="numero" value="{{ numero }}" placeholder="Número">
+                <label for="date">De:</label>
+                <input class="form-control" type="date" name="datainicial" value="{{ datainicial }}">
+                <label for="date">Até:</label>
+                <input class="form-control" type="date" name="datafinal" value="{{ datafinal }}">
+                <input class="form-control" type="text" name="login" value="{{ login }}" placeholder="Operador"> Alerta:
+                <input class="form-control" type="checkbox" name="alerta" value="{{ alerta }}">
+                <input class="form-control" type="submit" value="Filtrar">
+            </div>
+        </div>
+    </form>
 </div>
 {% endblock %}
-

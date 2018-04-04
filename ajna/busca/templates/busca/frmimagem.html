@@ -1,14 +1,16 @@
-{% extends 'busca/base.html' %}
-{% block content %}
-<div class="w3-container w3-padding-32 w3-center">  
-<h4>Este formulário permite o UPLOAD de qualquer imagem para busca de similares</h4>
+{% extends 'busca/base.html' %} {% block content %}
+<div class="w3-container w3-padding-32 w3-center">
+    <h4>Este formulário permite o UPLOAD de qualquer imagem para busca de similares</h4>
 </div>
-<div class="w3-container w3-padding-32 w3-left">  
-<form action="/busca/buscaimagem/" method="post" enctype="multipart/form-data" id="frmimagem">
-{% csrf_token %}
-<h3><i>Informe um arquivo de imagem</i></h3>
-<input type="file" name="image"><br>
-<input type="submit" value="Pesquisar">
-</form>
+<div class="w3-container w3-padding-32 w3-left">
+    <form action="/busca/buscaimagem/" method="post" enctype="multipart/form-data" id="frmimagem">
+        {% csrf_token %}
+        <h3>
+            <i>Informe um arquivo de imagem</i>
+        </h3>
+        <input type="file" name="image">
+        <br>
+        <input type="submit" value="Pesquisar">
+    </form>
 </div>
 {% endblock %}
