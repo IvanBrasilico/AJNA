@@ -1,29 +1,52 @@
 {% extends 'busca/base.html' %} {% block content %}
-<div class="w3-row-padding w3-padding-32 w3-left">
-    <div class="w3-padding-32">
+<div class="row">
+    <div class="col-sm-4">
+        <table class="">
+            <tbody>
+                <tr>
+                    <td>
+                        <b>Data de registro:</b>
+                    </td>
+                    <td>{{ conteinerescaneado.pub_date }}</td>
+                </tr>
+                <tr>
+                    <td>
+                        <b>Numero:</b>
+                    </td>
+                    <td>{{ conteinerescaneado.numero }}</td>
+                </tr>
+                <tr>
+                    <td>
+                        <b>Truck ID:</b>
+                    </td>
+                    <td>{{ conteinerescaneado.truckid }}</td>
+                </tr>
+                <tr>
+                    <td>
+                        <b>Fonte:</b>
+                    </td>
+                    <td>{{ conteinerescaneado.fonte.nome }}</td>
+                </tr>
+                <tr>
+                    <td>
+                        <b>Operador:</b>
+                    </td>
+                    <td>{{ conteinerescaneado.operador }}</td>
+                </tr>
+                <tr>
+                    <td>
+                        <b>Alerta:</b>
+                    </td>
+                    <td>{{ conteinerescaneado.alerta }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="col-sm-8">
         <p>Imagem 'Stamp' original:</p>
         <img src="/static/busca/{{ conteinerescaneado.arqimagemoriginal }}" alt="{{ conteinerescaneado.arqimagemoriginal }}" style="width:100%"
         />
         <br>
     </div>
-    <div class="w3-third">
-        <b>
-            <p>Data de registro:</p>
-            <p>Numero:</p>
-            <p>Truck ID:</p>
-            <p>Fonte:</p>
-            <p>Operador:</p>
-            <p>Alerta: </p>
-        </b>
-    </div>
-    <div class="w3-third">
-        <p> {{ conteinerescaneado.pub_date }}</p>
-        <p> {{ conteinerescaneado.numero }}</p>
-        <p> {{ conteinerescaneado.truckid }}</p>
-        <p> {{ conteinerescaneado.fonte.nome }}</p>
-        <p> {{ conteinerescaneado.login }}</p>
-        <p> {{ conteinerescaneado.alerta }}</p>
-    </div>
-
 </div>
 {% endblock %}

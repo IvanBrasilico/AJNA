@@ -3,16 +3,14 @@
     <form action="/busca/buscaimagem/" method="post" id="frmbuscaimagem">
         {% csrf_token %}
         <div class="form-group col-sm-12">
-            <div class="form-control">
-                <input class="form-control" type="text" name="numero" value="{{ numero }}" placeholder="Número">
-                <label for="date">De:</label>
-                <input class="form-control" type="date" name="datainicial" value="{{ datainicial }}">
-                <label for="date">Até:</label>
-                <input class="form-control" type="date" name="datafinal" value="{{ datafinal }}">
-                <input class="form-control" type="text" name="login" value="{{ login }}" placeholder="Operador"> Alerta:
-                <input class="form-control" type="checkbox" name="alerta" value="{{ alerta }}">
-                <input class="form-control" type="submit" value="Filtrar">
-            </div>
+            <input class="" type="text" name="numero" value="{{ numero }}" placeholder="Número">
+            <label for="date">De:</label>
+            <input class="" type="date" name="datainicial" value="{{ datainicial }}">
+            <label for="date">Até:</label>
+            <input class="" type="date" name="datafinal" value="{{ datafinal }}">
+            <input class="" type="text" name="login" value="{{ login }}" placeholder="Operador"> Alerta:
+            <input class="" type="checkbox" name="alerta" value="{{ alerta }}">
+            <input class="" type="submit" value="Filtrar">
         </div>
     </form>
 </div>

@@ -12,7 +12,7 @@ import locale
 locale.setlocale(locale.LC_ALL, '')
 import collections
 import shutil
-
+import time
 import io
 from datetime import datetime
 import os
@@ -72,7 +72,7 @@ def paginatorconteiner(request, ConteinerEscaneado_list, template, numero="", da
 
 
 # Recebe uma imagem via form HTML e monta listaordenada dos contêineres escaneados
-def filtraconteiner(request, numero="", datainicial="", datafinal="", login="", alerta=""):
+def filtraconteiner(request, numero="", datainicial="", datafinal="", login="", alerta=False):
     ConteinerEscaneadol = ConteinerEscaneado.objects.all()
     if not login == "":
         ConteinerEscaneadol = ConteinerEscaneadol.filter(
@@ -100,6 +100,8 @@ def buscaconteiner(request):
         datafinal = request.POST['datafinal']
         login = request.POST['login']
         alerta = request.POST['alerta']
+        if alerta:
+            alerta = True
     ConteinerEscaneadol = filtraconteiner(
         request, numero, datainicial, datafinal, login, alerta)
     return paginatorconteiner(request, ConteinerEscaneadol.order_by('-pub_date', 'numero'), 'busca/buscaconteiner.html', numero, datainicial, datafinal)
@@ -118,9 +120,12 @@ def buscaimagem(request):
             numero = ""
         if not numero == "":
             datainicial = request.POST['datainicial']
+            print(datainicial)
             datafinal = request.POST['datafinal']
             login = request.POST['login']
             alerta = request.POST['alerta']
+            if alerta:
+                alerta = True 
     ConteinerEscaneadol = filtraconteiner(
         request, numero, datainicial, datafinal, login, alerta)
     return paginatorconteiner(request, ConteinerEscaneadol, 'busca/buscaconteiner.html', numero, datainicial, datafinal, login, alerta)

@@ -3,10 +3,14 @@
     {% for ConteinerEscaneado in conteineres %}
     <div class="w3-quarter">
         <a href="/busca/conteiner/{{ ConteinerEscaneado.id }}/">
-            <img src="/static/busca/{{ ConteinerEscaneado.arqimagemoriginal }}" alt="{{ ConteinerEscaneado.arqimagemoriginal }}" style="width:100% ">
-            <p>
+            <div>
+                <img src="/static/busca/{{ ConteinerEscaneado.arqimagemoriginal }}" alt="{{ ConteinerEscaneado.arqimagemoriginal }}"
+                    style="width:100% ">
+            </div>
+            <br>
+            <div>
                 <a href="/busca/conteiner/{{ ConteinerEscaneado.id }}/">{{ ConteinerEscaneado.numero }}</a>
-            </p>
+            </div>
     </div>
     {% if forloop.counter|divisibleby:4 %}
 </div>

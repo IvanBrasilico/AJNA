@@ -24,11 +24,13 @@ class ConteinerEscaneado(models.Model):
         'Data do escaneamento retirada do arquivo XML')
     file_mdate = models.DateTimeField('Data da última modificação do arquivo')
     file_cdate = models.DateTimeField('Data da criação do arquivo (Windows)')
-    arqimagemoriginal = models.CharField(max_length=150, blank=True)
-    arqimagem = models.CharField(max_length=150, blank=True)
-    truckid = models.CharField(max_length=150, blank=True)
+    arqimagemoriginal = models.CharField(max_length=50, blank=True)
+    arqimagem = models.CharField(max_length=50, blank=True)
+    truckid = models.CharField(max_length=50, blank=True)
     codigoplano = models.BinaryField(max_length=1000, null=True)
     exportado = models.IntegerField(default=0)
+    alerta = models.BooleanField(default=False)
+    operador = models.CharField(max_length=50, blank=True)
 
     class Meta:
         indexes = [
@@ -84,9 +86,10 @@ def trata_agendamentos():
                 caminho = ag.processamascara()
                 mensagem, erro = carregaarquivos(homedir, caminho, size, fonte)
                 f.write(mensagem+'\n')
-                ag.proximocarregamento = ag.proximocarregamento + \
-                    datetime.timedelta(days=ag.diaspararepetir)
-                ag.save()
+                if not erro:
+                    ag.proximocarregamento = ag.proximocarregamento + \
+                        datetime.timedelta(days=ag.diaspararepetir)
+                    ag.save()
             f.close()
     else:
         print('Não tem agendamentos!')
