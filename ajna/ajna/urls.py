@@ -58,7 +58,7 @@ class myThread (threading.Thread):
     def run(self):
         print("Starting " + self.name)
         conta_por_agendamento()
-        schedule.every(10).minutes.do(trata_agendamentos_exporta_bson)
+        schedule.every(1).minutes.do(trata_agendamentos_exporta_bson)
         while True:
             schedule.run_pending()
             time.sleep(1)

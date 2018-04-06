@@ -9,7 +9,7 @@
             </div>
             <br>
             <div>
-                <a href="/busca/conteiner/{{ ConteinerEscaneado.id }}/">{{ ConteinerEscaneado.numero }}</a>
+                <a href="/busca/conteiner/{{ ConteinerEscaneado.id }}/" {% if ConteinerEscaneado.alerta == True %} style="color: #FF0000" {% endif %}>{{ ConteinerEscaneado.numero }}</a>
             </div>
     </div>
     {% if forloop.counter|divisibleby:4 %}

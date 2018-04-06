@@ -3,14 +3,29 @@
     <form action="/busca/buscaimagem/" method="post" id="frmbuscaimagem">
         {% csrf_token %}
         <div class="form-group col-sm-12">
-            <input class="" type="text" name="numero" value="{{ numero }}" placeholder="Número">
-            <label for="date">De:</label>
-            <input class="" type="date" name="datainicial" value="{{ datainicial }}">
-            <label for="date">Até:</label>
-            <input class="" type="date" name="datafinal" value="{{ datafinal }}">
-            <input class="" type="text" name="login" value="{{ login }}" placeholder="Operador"> Alerta:
-            <input class="" type="checkbox" name="alerta" value="{{ alerta }}">
-            <input class="" type="submit" value="Filtrar">
+            <div class="col-sm-6">
+                <div class="col-sm-4">
+                    <input class="form-control" type="text" name="numero" value="{{ numero }}" placeholder="Número">
+                </div>
+                <div class="col-sm-4">
+                    <input class="form-control" type="text" name="operador" value="{{ operador }}" placeholder="Operador">
+                </div>
+                <div class="col-sm-4">
+                    <b>Alerta:</b> <input class="" type="checkbox" name="alerta" value="{{ alerta }}">
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="col-sm-5">
+                    <input class="form-control" type="date" name="datainicial" value="{{ datainicial }}">
+                </div>
+                <div class="col-sm-5">
+                    <input class="form-control" type="date" name="datafinal" value="{{ datafinal }}">
+                </div>
+            
+            <div class="col-sm-2">
+                <input class="btn btn-primary" type="submit" value="Filtrar">
+            </div>
+        </div>
         </div>
     </form>
 </div>

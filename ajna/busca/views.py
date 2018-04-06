@@ -17,6 +17,7 @@ import io
 from datetime import datetime
 import os
 import sqlite3
+import matplotlib.pyplot as plt
 
 # Inicialização/configuração - depois COLOCAR EM ARQUIVO ESPECÍFICO
 
@@ -31,7 +32,7 @@ def indexview(request):
     agendamentos = Agendamento.agendamentos_programados()
     percentuais = {}
     for o in Agregadolist:
-        percentual = int((o['fcount'] / total) * 600)  # 600 = px para exibição
+        percentual = int((o['fcount'] / total) * 200)  # 600 = px para exibição
         fonte = FonteImagem.objects.get(pk=o['fonte'])
         percentuais.update({fonte.nome: percentual})
     percentuais = collections.OrderedDict(
@@ -54,7 +55,7 @@ def conteinerdetail(request, pk):
     return render(request, 'busca/conteinerdetail.html', {'conteinerescaneado': conteiner})
 
 
-def paginatorconteiner(request, ConteinerEscaneado_list, template, numero="", datainicial="", datafinal="", login="", img="", alerta=""):
+def paginatorconteiner(request, ConteinerEscaneado_list, template, numero="", datainicial="", datafinal="", operador="", img="", alerta=""):
     # Show 12 images per page
     paginator = Paginator(ConteinerEscaneado_list, 12)
     page = request.GET.get('page')
@@ -67,17 +68,17 @@ def paginatorconteiner(request, ConteinerEscaneado_list, template, numero="", da
         # If page is out of range (e.g. 9999), deliver last page of results.
         conteineres = paginator.page(paginator.num_pages)
     context = {'conteineres': conteineres, 'numero': numero, 'datainicial': datainicial,
-               'datafinal': datafinal, 'login': login, 'alerta': alerta}
+               'datafinal': datafinal, 'operador': operador, 'alerta': alerta}
     return render(request, template, context)
 
 
 # Recebe uma imagem via form HTML e monta listaordenada dos contêineres escaneados
-def filtraconteiner(request, numero="", datainicial="", datafinal="", login="", alerta=False):
+def filtraconteiner(request, numero="", datainicial="", datafinal="", operador="", alerta='0'):
     ConteinerEscaneadol = ConteinerEscaneado.objects.all()
-    if not login == "":
+    if not operador == "":
         ConteinerEscaneadol = ConteinerEscaneadol.filter(
-            login__startswith=login)
-    if not alerta == "":
+            operador__startswith=operador)
+    if not alerta == '0':
         ConteinerEscaneadol = ConteinerEscaneadol.filter(
             alerta__startswith=alerta)
     if not numero == "":
@@ -92,43 +93,39 @@ def buscaconteiner(request):
     numero = ""
     datainicial = ""
     datafinal = ""
-    login = ""
+    operador = ""
     alerta = ""
     if request.POST:
         numero = request.POST['numero']
         datainicial = request.POST['datainicial']
         datafinal = request.POST['datafinal']
-        login = request.POST['login']
+        operador = request.POST['operador']
         alerta = request.POST['alerta']
-        if alerta:
-            alerta = True
     ConteinerEscaneadol = filtraconteiner(
-        request, numero, datainicial, datafinal, login, alerta)
-    return paginatorconteiner(request, ConteinerEscaneadol.order_by('-pub_date', 'numero'), 'busca/buscaconteiner.html', numero, datainicial, datafinal)
+        request, numero, datainicial, datafinal, operador, alerta)
+    return paginatorconteiner(request, ConteinerEscaneadol.order_by('-pub_date', 'numero'), 'busca/buscaconteiner.html', numero, datainicial, datafinal, operador, alerta)
 
 
 def buscaimagem(request):
     numero = ""
     datainicial = ""
     datafinal = ""
-    login = ""
+    operador = ""
     alerta = ""
     if request.POST:
         try:
             numero = request.POST['numero']
         except:
             numero = ""
-        if not numero == "":
-            datainicial = request.POST['datainicial']
-            print(datainicial)
-            datafinal = request.POST['datafinal']
-            login = request.POST['login']
-            alerta = request.POST['alerta']
-            if alerta:
-                alerta = True 
+        datainicial = request.POST['datainicial']
+        print(datainicial)
+        datafinal = request.POST['datafinal']
+        operador = request.POST['operador']
+        if 'alerta' in request.POST:
+            alerta = '1'
     ConteinerEscaneadol = filtraconteiner(
-        request, numero, datainicial, datafinal, login, alerta)
-    return paginatorconteiner(request, ConteinerEscaneadol, 'busca/buscaconteiner.html', numero, datainicial, datafinal, login, alerta)
+        request, numero, datainicial, datafinal, operador, alerta)
+    return paginatorconteiner(request, ConteinerEscaneadol, 'busca/buscaconteiner.html', numero, datainicial, datafinal, operador, alerta)
 
 
 def trataagendamentos(request):

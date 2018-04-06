@@ -12,15 +12,15 @@
         {% endif %}
     </div>
     <div class="col-sm-4">
-        <p>Total de imagens de escaneamento importadas: {{ total }}</p>
+        <h4>Total de imagens de escaneamento importadas: {{ total }}</h4>
         <div class="chart">
             {% if percentuais %} {% for key, value in percentuais.items %}
-            <div style="width: 200px;">{{ key }}</div>
+            <div style="width: {{value}}px;">{{ key }}</div>
             {% endfor %} {% endif %}
         </div>
     </div>
     <div class="col-sm-4">
-        <p>Agendamentos programados:</p>
+        <h4>Agendamentos programados:</h4>
         {% if agendamentos %} {% for agendamento in agendamentos%}
         <p>{{ agendamento }}</p>
         {% endfor %} {% endif %}
