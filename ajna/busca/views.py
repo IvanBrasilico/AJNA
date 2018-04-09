@@ -55,9 +55,11 @@ def conteinerdetail(request, pk):
     return render(request, 'busca/conteinerdetail.html', {'conteinerescaneado': conteiner})
 
 
-def paginatorconteiner(request, ConteinerEscaneado_list, template, numero="", datainicial="", datafinal="", operador="", img="", alerta=""):
+def paginatorconteiner(request, ConteinerEscaneado_list, template, numero="", datainicial="", datafinal="", operador="", img="", alerta="", img_page=12):
     # Show 12 images per page
-    paginator = Paginator(ConteinerEscaneado_list, 12)
+    if img_page > 50:
+        img_page = 50
+    paginator = Paginator(ConteinerEscaneado_list, img_page)
     page = request.GET.get('page')
     try:
         conteineres = paginator.page(page)
@@ -107,25 +109,19 @@ def buscaconteiner(request):
 
 
 def buscaimagem(request):
-    numero = ""
-    datainicial = ""
-    datafinal = ""
-    operador = ""
-    alerta = ""
     if request.POST:
         try:
             numero = request.POST['numero']
         except:
             numero = ""
         datainicial = request.POST['datainicial']
-        print(datainicial)
         datafinal = request.POST['datafinal']
         operador = request.POST['operador']
-        if 'alerta' in request.POST:
-            alerta = '1'
+        alerta = 1 if 'alerta' in request.POST else 0
     ConteinerEscaneadol = filtraconteiner(
         request, numero, datainicial, datafinal, operador, alerta)
-    return paginatorconteiner(request, ConteinerEscaneadol, 'busca/buscaconteiner.html', numero, datainicial, datafinal, operador, alerta)
+    img_per_page = len(ConteinerEscaneadol) if ConteinerEscaneadol else 1
+    return paginatorconteiner(request, ConteinerEscaneadol.order_by('-pub_date', 'numero'), 'busca/buscaconteiner.html', numero, datainicial, datafinal, operador, alerta, img_page=img_per_page)
 
 
 def trataagendamentos(request):
